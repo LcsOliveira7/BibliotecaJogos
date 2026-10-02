@@ -9,6 +9,7 @@ jogoNome varchar(100) not null,
 jogoDescricao varchar(200) not null,
 jogoImagem varchar(100) not null,
 jogoCategoria varchar(100) not null,
+JogoLink varchar(200) not null,
 foreign key (jogoCategoria) references categorias(categoriaNome)
 );
 create table usuarios (
