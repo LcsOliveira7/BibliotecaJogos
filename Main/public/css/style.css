@@ -33,6 +33,11 @@ p, h1, h3, label{
     gap: 30px;
 }
 
+.header-explorar nav{
+    display: flex;
+    gap: 30px;
+}
+
 a{
     color: rgb(224, 224, 224);
     text-decoration: none;
@@ -61,6 +66,7 @@ a{
     align-items: center;
     justify-content: center;
     gap: 40px;
+    border-radius: 20px;
 }
 
 .div-recomendar{
@@ -76,6 +82,7 @@ a{
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 10px;
 }
 
 .recomendar-elemento{
