@@ -1,65 +1,47 @@
-/* Carrega as variáveis de ambiente do arquivo .env.
-Assim, podemos acessar configurações como DB_HOST e DB_PASSWORD
-usando process.env, sem escrever os dados diretamente no código.
- */
-require("dotenv").config();
+const mysql = require('mysql2/promise');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config();
 
-/* mysql2: permite que o Node.js se conecte ao MySQL e execute SQL.
-fs: permite ler arquivos do computador, como o certificado SSL.
-path: ajuda a montar caminhos de arquivos corretamente.
- */
-const mysql = require("mysql2");
-const fs = require("fs");
-const path = require("path");
+console.log("-> [DEBUG] DATABASE_URL sendo lida:", process.env.DATABASE_URL);
 
-/*Cria a conexão com o banco de dados.*/
-const db = mysql.createConnection({
-    // Endereço do servidor MySQL fornecido pelo Aiven.
-    host: process.env.DB_HOST,
-    // Porta de acesso ao MySQL. Number converte o texto em número.
-    port: Number(process.env.DB_PORT),
-    // Nome do usuário autorizado a acessar o banco.
-    user: process.env.DB_USER,
-    // Senha desse usuário, carregada do arquivo .env.
-    password: process.env.DB_PASSWORD,
-    // Nome do banco de dados que contém as tabelas do projeto.
-    database: process.env.DB_NAME,
+let sslConfig = { rejectUnauthorized: true };
+const caPath = path.join(__dirname, 'ca.pem');
 
-    /*
-     * Configura a conexão SSL/TLS.
-     * O certificado CA permite verificar a identidade do servidor.
-     */
-    ssl: {
+if (fs.existsSync(caPath)) {
+    sslConfig.ca = fs.readFileSync(caPath, 'utf8');
+}
 
-        /*
-         * Lê o certificado CA do arquivo indicado no .env.
-         *
-         * __dirname representa a pasta onde este db.js está.
-         * path.resolve monta o caminho completo do certificado.
-         * fs.readFileSync lê o arquivo para que o mysql2 possa usá-lo.
-         */
-        ca: fs.readFileSync(
-            path.resolve(__dirname, process.env.DB_SSL_CA_PATH)
-        )
-    }
+
+const dbPassword = process.env.AIVEN_DB_PASSWORD; 
+
+const pool = mysql.createPool({
+    host: 'mysql-projeto-escola-mysql-projeto-escola.b.aivencloud.com',
+    port: 13680,
+    user: 'avnadmin',
+    password: dbPassword, 
+    database: 'defaultdb',
+    ssl: sslConfig,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    connectTimeout: 60000,
+    enableKeepAlive: true
 });
 
-/*Tenta estabelecer a conexão com o banco.*/
-db.connect((erro) => {
-
-    // Verifica se ocorreu algum problema na conexão.
-    if (erro) {
-
-        // Mostra o erro para ajudar a identificar a causa.
-        console.error("Erro ao conectar ao Aiven:", erro.message);
-
-        // Encerra esta função sem executar a mensagem de sucesso.
-        return;
+async function query(sql, params) {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query(sql, params);
+        return results;
+    } catch (error) {
+        console.error('Erro na query do banco de dados:', error.message);
+        throw error;
+    } finally {
+        if (connection) connection.release();
     }
+}
 
-    // Executado quando a conexão é estabelecida com sucesso.
-    console.log("Conectado ao MySQL do Aiven!");
-});
-
-/*Exporta a conexão para outros arquivos do projeto.*/
-module.exports = db;
+// Exportamos a função query E o pool para permitir transações no app.js
+module.exports = { query, pool };
