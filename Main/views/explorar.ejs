@@ -9,7 +9,16 @@
 <body>
     <%- include('partials/header') %>
     <%- include('partials/header-explorar') %>
-    <p>tsteaaaaaaaa</p>
+    <h1 class="h1-explorar">Encontre  seus jogos favoritos aqui!</h1>
+    <div class="jogos-body">
+        <% [1, 2, 3, 4, 5].forEach(function(jogo){ %>
+            <div class="capa-jogo">
+                <div class="capa-titulo">titulo</div>
+                <div class="capa-img">imagem</div>
+                <div class="capa-desc">descrição</div>
+            </div>
+        <% }) %>
+    </div>
     <%- include('partials/footer') %>
 </body>
 </html>

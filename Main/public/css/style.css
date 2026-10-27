@@ -90,3 +90,41 @@ a{
     justify-content: center;
     align-items: center;
 }
+
+.capa-jogo{
+    width: 200px;
+    height: 250px;
+    background-color: aqua;
+    display: block;
+}
+
+.capa-titulo{
+    width: 100%;
+    height: 15%;
+    background-color: red;
+}
+
+.capa-img{
+    width: 100%;
+    height: 50%;
+    background-color: rgb(21, 255, 0);
+}
+
+.capa-desc{
+    width: 100%;
+    height: 35%;
+    background-color: rgb(0, 4, 255);    
+}
+
+.jogos-body{
+    width: 100%;
+    height: 1000;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.h1-explorar{
+    justify-self: center;
+    margin-top: 15px;
+    margin-bottom: 15px;    
+}
