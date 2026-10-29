@@ -20,6 +20,14 @@ p, h1, h3, label{
     padding-left: 40px;
 }
 
+.header-explorar{
+    background-color: rgb(51, 0, 53);
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding-left: 40px;
+}
+
 .header nav{
     display: flex;
     gap: 30px;
@@ -51,8 +59,9 @@ a{
     width: 105%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 40px;
+    justify-content: space-evenly;
+    gap: 30px;
+    border-radius: 30px;
 }
 
 .div-recomendar{
@@ -63,15 +72,55 @@ a{
 
 .elemento-div{
     background-color: rgb(51, 17, 65);
-    width: 400px;
+    width: 320px;
     height: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
+    border-radius: 15px;
 }
 
 .recomendar-elemento{
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    height: 100%;
+    gap: 10px;
 }
+
+.botao-header-explorar{
+    background-color: rgb(100, 0, 104);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.header-explorar nav{
+    display: flex;
+    gap: 30px;
+}
+
+.recomendar-elemento input{
+    height: 30px;
+    border-radius: 5px;
+    border-color: rgb(255, 255, 255);
+    background-color: rgb(37, 37, 37);
+    color: white;
+}
+
+.recomendar-elemento button{
+    height: 32px;
+    width: 200px;
+    border-radius: 5px;
+    border-color: rgb(255, 255, 255);
+    background-color: rgb(37, 37, 37);
+    color: white;
+    cursor: pointer;
+}
+
+ .recomendar-elemento-parametro label{
+    font-weight: bold;
+ }
