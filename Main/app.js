@@ -43,12 +43,12 @@ app.get("/explorar", (req, res) => {
     res.render("explorar")  
 })
 
-app.get("/cadastro", (req, res) => {
-    res.render("cadastro")  
+app.get("/cadastrar", (req, res) => {
+    res.render("cadastrar")  
 })
 
-app.get("/login", (req, res) => {
-    res.render("login")  
+app.get("/entrar", (req, res) => {
+    res.render("entrar")  
 })
 
 app.get("/recomendar", (req, res) => {

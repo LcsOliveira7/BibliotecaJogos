@@ -3,8 +3,6 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-console.log("-> [DEBUG] DATABASE_URL sendo lida:", process.env.DATABASE_URL);
-
 let sslConfig = { rejectUnauthorized: true };
 const caPath = path.join(__dirname, 'ca.pem');
 
