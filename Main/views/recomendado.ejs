@@ -1,14 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/public/css/style.css">
+    <title>Recomendado - The Game Library</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
-    <h1>Obrigado por recomendar seu jogo!</h1>
+
+    <div class="div-recomendar">
+        <div class="form-recomendar mensagem-sucesso">
+            <div class="icone-sucesso">🎮</div>
+            <h1 class="h1-explorar">Obrigado pela recomendação!</h1>
+            <p class="subtitulo">Sua sugestão foi enviada com sucesso e será analisada pela equipe.</p>
+            
+            <div class="botoes-sucesso">
+                <a href="/recomendar" class="botao-header">Sugerir Outro</a>
+                <a href="/" class="botao-header botao-secundario">Voltar ao Início</a>
+            </div>
+        </div>
+    </div>
+
     <%- include('partials/footer') %>
 </body>
 </html>

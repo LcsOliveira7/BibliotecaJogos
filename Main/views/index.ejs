@@ -1,15 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/public/css/style.css">
+    <title>Início - The Game Library</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
-    <h1>Bem Vindo!</h1>
-    <p>Esta é a biblioteca de jogos onde você pode explorar, postar e encontrar novos videogames</p>
+
+    <main class="div-recomendar">
+        <section class="home-hero">
+            <h1 class="h1-explorar">Bem-vindo à Game Library! 🎮</h1>
+            <p class="subtitulo">Sua biblioteca para explorar, postar e encontrar novos videogames incríveis compartilhados pela comunidade.</p>
+            
+            <div class="botoes-sucesso">
+                <a href="/explorar" class="botao-header">Explorar Jogos</a>
+                <a href="/recomendar" class="botao-header botao-secundario">Recomendar</a>
+            </div>
+        </section>
+    </main>
+
     <%- include('partials/footer') %>
 </body>
 </html>

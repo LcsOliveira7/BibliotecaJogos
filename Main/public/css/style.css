@@ -1,4 +1,6 @@
-/* Reset básico */
+/* ==========================================================================
+   1. RESET E ESTILOS GLOBAIS
+   ========================================================================== */
 * {
   margin: 0;
   padding: 0;
@@ -26,47 +28,56 @@ a:hover {
   opacity: 0.8;
 }
 
-/* Headers */
-.header {
-  background-color: rgb(27, 0, 53);
-  height: 80px;
+.h1-explorar {
+  text-align: center;
+  margin: 30px 0 10px;
+}
+
+/* ==========================================================================
+   2. CABEÇALHOS (HEADERS)
+   ========================================================================== */
+.header,
+.header-explorar {
   display: flex;
   align-items: center;
   padding-left: 40px;
+}
+
+.header {
+  background-color: rgb(27, 0, 53);
+  height: 80px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .header-explorar {
   background-color: rgb(51, 0, 53);
   height: 60px;
-  display: flex;
-  align-items: center;
-  padding-left: 40px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.header nav {
-  display: flex;
-  gap: 30px;
-  align-items: center;
-}
-
+.header nav,
 .header-explorar nav {
   display: flex;
   gap: 30px;
   align-items: center;
 }
 
-/* Botão do Header com efeito suave sem quebrar a tela */
+/* ==========================================================================
+   3. BOTÕES
+   ========================================================================== */
 .botao-header {
-  display: flex;
+  display: inline-flex;
   justify-content: center;
   align-items: center;
   background-color: rgb(100, 0, 104);
+  color: rgb(224, 224, 224);
   width: 90px;
   height: 40px;
   border-radius: 10px;
   font-weight: 600;
+  border: none;
+  outline: none;
+  cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
@@ -75,63 +86,130 @@ a:hover {
   transform: translateY(-2px);
 }
 
-/* Área de Recomendação e Formulário */
+/* Botão secundário (Usado no "Voltar ao Início") */
+.botao-secundario {
+  background-color: rgb(51, 17, 65);
+}
+
+.botao-secundario:hover {
+  background-color: rgb(75, 25, 95);
+}
+
+/* Ajuste de tamanho para o botão dentro de formulários */
+.form-recomendar .botao-header {
+  width: 100%;
+  max-width: 200px;
+  height: 45px;
+  font-size: 1rem;
+}
+
+/* Ajuste de tamanho para botões na tela de sucesso */
+.botoes-sucesso .botao-header {
+  width: auto;
+  padding: 0 20px;
+}
+
+/* ==========================================================================
+   4. FORMULÁRIOS E CAMPOS
+   ========================================================================== */
 .div-recomendar {
   display: flex;
   justify-content: center;
-  padding: 50px 20px;
+  align-items: center;
+  padding: 30px 20px;
 }
 
 .form-recomendar {
   background-color: rgb(27, 0, 53);
-  min-height: 80px;
   width: 100%;
-  max-width: 900px;
+  max-width: 450px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 20px;
-  padding: 20px;
+  padding: 35px 25px;
   border-radius: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(100, 0, 104, 0.3);
 }
 
+.titulo-recomendar {
+  text-align: center;
+}
+
+.subtitulo {
+  color: rgb(180, 180, 190);
+  font-size: 0.85rem;
+  margin-top: 5px;
+}
+
+/* Caixas dos Inputs */
 .elemento-div {
   background-color: rgb(51, 17, 65);
-  width: 300px;
+  width: 100%;
+  max-width: 380px;
   height: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 10px;
   padding: 0 15px;
+  border: 1px solid transparent;
+  transition: border 0.3s ease;
 }
 
-.elemento-div input,
-.elemento-div select,
-.elemento-div textarea {
+.elemento-div:focus-within:not(:has(.botao-header)) {
+  border-color: rgb(100, 0, 104);
+}
+
+.elemento-div:has(.botao-header) {
+  background-color: transparent;
+  border: none;
+}
+
+.elemento-textarea {
+  height: auto;
+  padding: 10px 15px;
+}
+
+/* Inputs, Textareas e Selects */
+.recomendar-elemento {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.recomendar-elemento label {
+  font-weight: 600;
+  white-space: nowrap;
+  font-size: 0.95rem;
+}
+
+.recomendar-elemento input,
+.recomendar-elemento select,
+.recomendar-elemento textarea {
   width: 100%;
   background: transparent;
   border: none;
   outline: none;
   color: rgb(224, 224, 224);
   font-size: 0.95rem;
+  font-family: inherit;
 }
 
-.recomendar-elemento {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.recomendar-elemento textarea {
+  resize: none;
 }
 
-/* Área do Explorar & Cards de Jogos */
-.h1-explorar {
-  text-align: center;
-  margin-top: 25px;
-  margin-bottom: 25px;
+.recomendar-elemento input::placeholder,
+.recomendar-elemento textarea::placeholder {
+  color: rgb(150, 150, 170);
 }
 
+/* ==========================================================================
+   5. CARDS DE JOGOS (EXPLORAR)
+   ========================================================================== */
 .jogos-body {
   width: 100%;
   max-width: 1200px;
@@ -181,7 +259,6 @@ a:hover {
 .capa-desc {
   width: 100%;
   height: 35%;
-  background-color: transparent;
   padding: 10px;
   font-size: 0.85rem;
   color: rgb(180, 180, 190);
@@ -189,111 +266,87 @@ a:hover {
 }
 
 /* ==========================================================================
-   ESTILOS DE LOGIN E CADASTRO (Usando suas classes exatas)
+   6. TELA DE SUCESSO
    ========================================================================== */
-
-/* Títulos das páginas de Entrar e Cadastrar */
-.h1-explorar {
+.mensagem-sucesso {
   text-align: center;
-  margin-top: 30px;
-  margin-bottom: 10px;
+}
+
+.icone-sucesso {
+  font-size: 3rem;
+  margin-bottom: -10px;
+}
+
+.botoes-sucesso {
+  display: flex;
+  gap: 15px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Garante que o link ocupe todo o espaço do botão */
+.botao-header a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: inherit; /* Mantém a cor do texto */
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   Ajuste no Body (para empurrar o footer sempre para o final da página)
+   ========================================================================== */
+body {
+  background-color: rgb(0, 2, 19);
+  color: rgb(224, 224, 224);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   7. FOOTER (Retângulo no final da página)
+   ========================================================================== */
+footer {
+  width: 100%;
+  background-color: rgb(27, 0, 53);
+  color: rgb(224, 224, 224);
+  text-align: center;
+  padding: 20px;
+  margin-top: auto; /* Mantém o footer no rodapé mesmo em páginas com pouco conteúdo */
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(100, 0, 104, 0.3);
+}
+
+footer p {
+  font-size: 0.95rem;
+  font-weight: 500;
   color: rgb(224, 224, 224);
 }
 
-/* Container centralizador */
-.div-recomendar {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 30px 20px;
-}
 
-/* Card Principal do Formulário */
-.form-recomendar {
+/* ==========================================================================
+   ESTILOS DA PÁGINA INICIAL (HOME HERO)
+   ========================================================================== */
+.home-hero {
   background-color: rgb(27, 0, 53);
   width: 100%;
-  max-width: 450px;
-  height: auto;
-  min-height: unset;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  padding: 35px 25px;
+  max-width: 550px;
+  text-align: center;
+  padding: 40px 30px;
   border-radius: 20px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
   border: 1px solid rgba(100, 0, 104, 0.3);
-}
-
-/* Caixas para cada campo (Input + Label) */
-.elemento-div {
-  background-color: rgb(51, 17, 65);
-  width: 100%;
-  max-width: 380px;
-  height: 50px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  border-radius: 10px;
-  padding: 0 15px;
-  transition: border 0.3s ease;
+  gap: 15px;
 }
 
-.elemento-div:focus-within {
-  border: 1px solid rgb(100, 0, 104);
-}
-
-/* Container flexível dentro de cada caixa */
-.recomendar-elemento {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  gap: 10px;
-}
-
-.recomendar-elemento label {
-  font-weight: 600;
-  white-space: nowrap;
-  color: rgb(224, 224, 224);
-  font-size: 0.95rem;
-}
-
-.recomendar-elemento input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: rgb(224, 224, 224);
-  font-size: 0.95rem;
-}
-
-.recomendar-elemento input::placeholder {
-  color: rgb(150, 150, 170);
-}
-
-/* Ajuste no elemento-div que segura o botão de envio */
-.form-recomendar .elemento-div:has(.botao-header) {
-  background-color: transparent;
-}
-
-/* Botão de envio usando a classe .botao-header */
-.form-recomendar .botao-header {
-  width: 100%;
-  max-width: 200px;
-  height: 45px;
-  background-color: rgb(100, 0, 104);
-  color: rgb(224, 224, 224);
-  border: none;
-  border-radius: 10px;
+.home-hero .subtitulo {
   font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.form-recomendar .botao-header:hover {
-  background-color: rgb(130, 0, 135);
-  transform: translateY(-2px);
+  line-height: 1.5;
 }

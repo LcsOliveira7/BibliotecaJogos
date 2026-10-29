@@ -1,24 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/public/css/style.css">
+    <title>Explorar - The Game Library</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
     <%- include('partials/header-explorar') %>
-    <h1 class="h1-explorar">Encontre  seus jogos favoritos aqui!</h1>
-    <div class="jogos-body">
-        <% [1, 2, 3, 4, 5].forEach(function(jogo){ %>
-            <div class="capa-jogo">
-                <div class="capa-titulo">titulo</div>
-                <div class="capa-img">imagem</div>
-                <div class="capa-desc">descrição</div>
-            </div>
-        <% }) %>
-    </div>
+
+    <main>
+        <h1 class="h1-explorar">Encontre seus jogos favoritos aqui!</h1>
+        
+        <div class="jogos-body">
+            <% if (typeof jogos !== 'undefined' && jogos.length > 0) { %>
+                <% jogos.forEach(function(jogo) { %>
+                    <div class="capa-jogo">
+                        <div class="capa-titulo"><%= jogo.NOME || jogo.nome %></div>
+                        <img class="capa-img" src="<%= jogo.IMAGEM || jogo.imagem %>" alt="<%= jogo.NOME || jogo.nome %>">
+                        <div class="capa-desc"><%= jogo.DESCRICAO || jogo.descricao %></div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p class="subtitulo">Nenhum jogo encontrado no banco de dados.</p>
+            <% } %>
+        </div>
+    </main>
+
     <%- include('partials/footer') %>
 </body>
 </html>

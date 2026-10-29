@@ -1,49 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Recomendar - The Game Library</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
     
-    <h1>Recomendar Jogos</h1>
-    <h3>Recomende jogos que você gostaria que fizessem parte da Game Library!</h3>
-    <p>Eles serão enviados para um admin, e se for aceito, seu jogo poderá ser acessado por outros usuários!</p>
-
     <div class="div-recomendar">
-        <form class="form-recomendar" action="#" method="POST">
+        <form class="form-recomendar" action="/recomendar" method="POST">
+            
+            <div class="titulo-recomendar">
+                <h1 class="h1-explorar">Recomendar Jogos</h1>
+                <p class="subtitulo">Recomende jogos para a Game Library! Eles serão avaliados por um administrador.</p>
+            </div>
+
             <div class="elemento-div">
                 <div class="recomendar-elemento">
                     <label for="nome">Nome:</label>
-                    <input type="text" id="nome" name="nome" placeholder="Nome do jogo aqui" required>
+                    <input type="text" id="nome" name="nome" placeholder="Nome do jogo" required>
                 </div>
             </div>
-            <div class="elemento-div">
+
+            <div class="elemento-div elemento-textarea">
                 <div class="recomendar-elemento">
                     <label for="desc">Descrição:</label>
-                    <input type="text" id="desc" name="desc" placeholder="Descição do jogo aqui" required>
+                    <textarea id="desc" name="desc" placeholder="Descrição do jogo" rows="2" required></textarea>
                 </div>
             </div>
+
             <div class="elemento-div">
                 <div class="recomendar-elemento">
-                    <label for="img">Imagem de Capa:</label>
-                    <input type="text" id="img" name="img" placeholder="Link da imagem de capa aqui" required>
+                    <label for="img">Imagem:</label>
+                    <input type="url" id="img" name="img" placeholder="Link da imagem de capa" required>
                 </div>
             </div>
+
             <div class="elemento-div">
                 <div class="recomendar-elemento">
-                    <label for="link">Link para o jogo:</label>
-                    <input type="text" id="link" name="link" placeholder="Link para o jogo aqui" required>
+                    <label for="link">Link:</label>
+                    <input type="url" id="link" name="link" placeholder="Link para jogar" required>
                 </div>
             </div>
+
             <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <button type="submit" class="botao-enviar">Enviar Mensagem</button>
-                </div>
+                <button type="submit" class="botao-header">Enviar</button>
             </div>
+
         </form>
     </div>
 
