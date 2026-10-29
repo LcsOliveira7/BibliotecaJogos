@@ -187,3 +187,113 @@ a:hover {
   color: rgb(180, 180, 190);
   overflow: hidden;
 }
+
+/* ==========================================================================
+   ESTILOS DE LOGIN E CADASTRO (Usando suas classes exatas)
+   ========================================================================== */
+
+/* Títulos das páginas de Entrar e Cadastrar */
+.h1-explorar {
+  text-align: center;
+  margin-top: 30px;
+  margin-bottom: 10px;
+  color: rgb(224, 224, 224);
+}
+
+/* Container centralizador */
+.div-recomendar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 20px;
+}
+
+/* Card Principal do Formulário */
+.form-recomendar {
+  background-color: rgb(27, 0, 53);
+  width: 100%;
+  max-width: 450px;
+  height: auto;
+  min-height: unset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 35px 25px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(100, 0, 104, 0.3);
+}
+
+/* Caixas para cada campo (Input + Label) */
+.elemento-div {
+  background-color: rgb(51, 17, 65);
+  width: 100%;
+  max-width: 380px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  padding: 0 15px;
+  transition: border 0.3s ease;
+}
+
+.elemento-div:focus-within {
+  border: 1px solid rgb(100, 0, 104);
+}
+
+/* Container flexível dentro de cada caixa */
+.recomendar-elemento {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  gap: 10px;
+}
+
+.recomendar-elemento label {
+  font-weight: 600;
+  white-space: nowrap;
+  color: rgb(224, 224, 224);
+  font-size: 0.95rem;
+}
+
+.recomendar-elemento input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgb(224, 224, 224);
+  font-size: 0.95rem;
+}
+
+.recomendar-elemento input::placeholder {
+  color: rgb(150, 150, 170);
+}
+
+/* Ajuste no elemento-div que segura o botão de envio */
+.form-recomendar .elemento-div:has(.botao-header) {
+  background-color: transparent;
+}
+
+/* Botão de envio usando a classe .botao-header */
+.form-recomendar .botao-header {
+  width: 100%;
+  max-width: 200px;
+  height: 45px;
+  background-color: rgb(100, 0, 104);
+  color: rgb(224, 224, 224);
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.form-recomendar .botao-header:hover {
+  background-color: rgb(130, 0, 135);
+  transform: translateY(-2px);
+}
