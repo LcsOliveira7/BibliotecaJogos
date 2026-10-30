@@ -3,14 +3,14 @@ create table administradores (
 adminID int not null auto_increment primary key,
 adminNome varchar(100) not null,
 adminEmail varchar(100) not null unique,
-adminSenha varchar(255) not null
+adminSenha varchar(300) not null
 );
 
 create table usuarios (
 usuarioID int not null auto_increment primary key,
 usuarioNome varchar(100) not null unique,
 usuarioEmail varchar(100) not null unique,
-usuarioSenha varchar(255) not null
+usuarioSenha varchar(300) not null
 );
 
 create table categorias (
@@ -30,8 +30,8 @@ jogoNome varchar(100) not null unique,
 jogoDescricao varchar(200) not null,
 jogoDesenvolvedora varchar(100) not null,
 jogoDataLancamento date not null,
-jogoImagem varchar(255) not null,
-jogoLink varchar(255) not null,
+jogoImagem varchar(300) not null,
+jogoLink varchar(300) not null,
 adminID int not null,
 foreign key (adminID) references administradores(adminID)
 );
@@ -40,8 +40,8 @@ create table recomendacoes (
 recomendacaoID int not null auto_increment primary key,
 recomendacaoTituloJogo varchar(100) not null,
 recomendacaoJustificativa varchar(500) not null,
-recomendacaoImagem varchar(255) not null,
-recomendacaoLink varchar(255) not null,
+recomendacaoImagem varchar(300) not null,
+recomendacaoLink varchar(300) not null,
 recomendacaoStatus varchar(30) not null default 'pendente',
 usuarioID int not null,
 foreign key (usuarioID) references usuarios(usuarioID)
@@ -62,11 +62,3 @@ primary key (jogoID, plataformaID),
 foreign key (jogoID) references jogos(jogoID),
 foreign key (plataformaID) references plataformas(plataformaID)
 );
-
-
-SELECT
-    jogoNome AS nome,
-    jogoDescricao AS descricao,
-    jogoImagem AS imagem
-FROM jogos
-ORDER BY jogoNome ASC;
