@@ -1,20 +1,72 @@
-create table categorias (
-categoriaID int not null auto_increment primary key,
-categoriaNome varchar(100) not null Unique,
-categoriaDescricao varchar(200) not null
+
+create table administradores (
+adminID int not null auto_increment primary key,
+adminNome varchar(100) not null,
+adminEmail varchar(100) not null unique,
+adminSenha varchar(255) not null
 );
-create table jogos (
-jogoID int not null auto_increment primary key,
-jogoNome varchar(100) not null,
-jogoDescricao varchar(200) not null,
-jogoImagem varchar(100) not null,
-jogoCategoria varchar(100) not null,
-JogoLink varchar(200) not null,
-foreign key (jogoCategoria) references categorias(categoriaNome)
-);
+
 create table usuarios (
 usuarioID int not null auto_increment primary key,
-usuarioNome varchar(100) not null,
-usuarioEmail varchar(100) not null,
-usuarioContato varchar(200) not null
+usuarioNome varchar(100) not null unique,
+usuarioEmail varchar(100) not null unique,
+usuarioSenha varchar(255) not null
 );
+
+create table categorias (
+categoriaID int not null auto_increment primary key,
+categoriaNome varchar(100) not null unique,
+categoriaDescricao varchar(200) not null
+);
+
+create table plataformas (
+plataformaID int not null auto_increment primary key,
+plataformaNome varchar(100) not null unique
+);
+
+create table jogos (
+jogoID int not null auto_increment primary key,
+jogoNome varchar(100) not null unique,
+jogoDescricao varchar(200) not null,
+jogoDesenvolvedora varchar(100) not null,
+jogoDataLancamento date not null,
+jogoImagem varchar(255) not null,
+jogoLink varchar(255) not null,
+adminID int not null,
+foreign key (adminID) references administradores(adminID)
+);
+
+create table recomendacoes (
+recomendacaoID int not null auto_increment primary key,
+recomendacaoTituloJogo varchar(100) not null,
+recomendacaoJustificativa varchar(500) not null,
+recomendacaoImagem varchar(255) not null,
+recomendacaoLink varchar(255) not null,
+recomendacaoStatus varchar(30) not null default 'pendente',
+usuarioID int not null,
+foreign key (usuarioID) references usuarios(usuarioID)
+);
+
+create table categoriaJogo (
+jogoID int not null,
+categoriaID int not null,
+primary key (jogoID, categoriaID),
+foreign key (jogoID) references jogos(jogoID),
+foreign key (categoriaID) references categorias(categoriaID)
+);
+
+create table plataformaJogo (
+jogoID int not null,
+plataformaID int not null,
+primary key (jogoID, plataformaID),
+foreign key (jogoID) references jogos(jogoID),
+foreign key (plataformaID) references plataformas(plataformaID)
+);
+
+
+SELECT
+    jogoNome AS nome,
+    jogoDescricao AS descricao,
+    jogoImagem AS imagem
+FROM jogos
+ORDER BY jogoNome ASC;

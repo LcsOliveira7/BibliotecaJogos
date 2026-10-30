@@ -3,11 +3,16 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
-let sslConfig = { rejectUnauthorized: true };
-const caPath = path.join(__dirname, 'ca.pem');
 
-if (fs.existsSync(caPath)) {
-    sslConfig.ca = fs.readFileSync(caPath, 'utf8');
+// Configura a segurança da conexão com o banco de dados
+const sslConfig = {
+    // Lê o certificado SSL (ca.pem) que está na mesma pasta do db.js
+    ca: fs.readFileSync(
+        path.join(__dirname, "ca.pem"),
+        "utf8"
+    ),
+    // Exige que o certificado do servidor seja válido e confiável
+    rejectUnauthorized: true
 }
 
 
