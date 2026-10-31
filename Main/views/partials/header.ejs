@@ -1,9 +1,33 @@
+
 <header class="header">
-  <nav>
-    <a href="/" class="botao-header">Início</a>
-    <a href="/explorar" class="botao-header">Explorar</a>
-    <a href="/recomendar" class="botao-header">Recomendar</a>
-    <a href="/cadastrar" class="botao-header">Cadastrar</a>
-    <a href="/entrar" class="botao-header">Entrar</a>
-  </nav>
+
+    <nav>
+        <a href="/" class="botao-header">Início</a>
+        <a href="/explorar" class="botao-header">Explorar</a>
+        <a href="/recomendar" class="botao-header">Recomendar</a>
+    </nav>
+
+    <div class="conta-menu">
+
+        <% if (usuarioLogado) { %>
+
+            <span class="email-usuario">
+                <%= usuarioLogado.email %>
+            </span>
+
+            <form action="/sair" method="POST">
+                <button type="submit" class="botao-header">
+                    Sair
+                </button>
+            </form>
+
+        <% } else { %>
+
+            <a href="/cadastrar" class="botao-header">Cadastrar</a>
+            <a href="/entrar" class="botao-header">Entrar</a>
+
+        <% } %>
+
+    </div>
+
 </header>

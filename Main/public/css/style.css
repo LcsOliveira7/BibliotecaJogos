@@ -350,3 +350,46 @@ footer p {
   font-size: 1rem;
   line-height: 1.5;
 }
+
+
+/* Organiza o menu principal e a conta na mesma linha */
+.header {
+    justify-content: space-between;
+    gap: 20px;
+    padding-right: 40px;
+}
+
+/* Organiza os elementos da conta no lado direito */
+.conta-menu {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 15px;
+    min-width: 0;
+}
+
+/* Estiliza o e-mail do usuário */
+.email-usuario {
+    color: rgb(224, 224, 224);
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* Ajusta o cabeçalho para telas menores */
+@media (max-width: 720px) {
+    .header {
+        height: auto;
+        padding: 15px;
+        flex-wrap: wrap;
+    }
+
+    .header nav {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .conta-menu {
+        flex-wrap: wrap;
+    }
+}
