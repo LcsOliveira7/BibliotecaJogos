@@ -18,7 +18,7 @@
                 <% jogos.forEach(function(jogo) { %>
                     <div class="capa-jogo">
                         <div class="capa-titulo"><%= jogo.NOME || jogo.nome %></div>
-                        <img class="capa-img" src="<%= jogo.IMAGEM || jogo.imagem %>" alt="<%= jogo.NOME || jogo.nome %>">
+                        <img class="capa-img" src="<%= jogo.IMAGEM || jogo.imagem %>" onerror="this.onerror=null; this.src='/images/erroImagem.png';" alt="<%= jogo.NOME || jogo.nome %>">
                         <div class="capa-desc"><%= jogo.DESCRICAO || jogo.descricao %></div>
                     </div>
                 <% }); %>
