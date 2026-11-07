@@ -6,6 +6,7 @@ const { error } = require("console")
 const bcrypt = require("bcrypt");
 require("dotenv").config();
 const session = require("express-session");
+const crypto = require("crypto");
 const port = 3000
 
 app.use(express.static('public'))
@@ -38,6 +39,23 @@ app.use((req, res, next) => {
     // Continua para a próxima função ou rota
     next();
 });
+
+function verificarCodigoConvite(codigo) {
+    const codigoCorreto = process.env.ADMIN_INVITE_CODE;
+
+    if (!codigoCorreto || !codigo) {
+        return false;
+    }
+
+    const recebido = Buffer.from(codigo);
+    const esperado = Buffer.from(codigoCorreto);
+
+    if (recebido.length !== esperado.length) {
+        return false;
+    }
+
+    return crypto.timingSafeEqual(recebido, esperado);
+}
 
 app.get("/", (req, res) => {
     res.render("index")
@@ -117,79 +135,88 @@ app.post("/cadastrar", async (req, res) => {
     }
 });
 
+
 app.post("/login", async (req, res) => {
     try {
-
-        // Recebe o e-mail e a senha enviados pelo formulário
         const email = (req.body.email || "").trim().toLowerCase();
         const senha = req.body.senha || "";
 
-        // Verifica se os campos foram preenchidos
         if (!email || !senha) {
             return res.status(400).send("Preencha todos os campos.");
         }
 
-        // Busca no banco o usuário que possui esse e-mail
-        const usuarios = await db.query(
-            "select * from usuarios where usuarioEmail = ?",
-            [email]
-        );
+        // Consulta as duas tabelas
+        const [administradores, usuarios] = await Promise.all([
+            db.query(
+                "SELECT * FROM administradores WHERE adminEmail = ?",
+                [email]
+            ),
+            db.query(
+                "SELECT * FROM usuarios WHERE usuarioEmail = ?",
+                [email]
+            )
+        ]);
 
-        // Verifica se o usuário foi encontrado
-        if (usuarios.length === 0) {
+        // Evita conflito de contas
+        if (administradores.length > 0 && usuarios.length > 0) {
+            return res.status(409).send(
+                "E-mail cadastrado em duas categorias. Verifique o banco."
+            );
+        }
+
+        let conta;
+        let tipo;
+
+        if (administradores.length > 0) {
+            conta = administradores[0];
+            tipo = "admin";
+        } else if (usuarios.length > 0) {
+            conta = usuarios[0];
+            tipo = "usuario";
+        } else {
             return res.status(401).send("E-mail ou senha incorretos.");
         }
 
-        // Pega o primeiro usuário encontrado
-        const usuario = usuarios[0];
+        // Identifica os campos de acordo com a tabela
+        const senhaHash = tipo === "admin"? conta.adminSenha: conta.usuarioSenha;
 
-        // Compara a senha digitada com o hash salvo no banco
-        const senhaCorreta = await bcrypt.compare(
-            senha,
-            usuario.usuarioSenha
-        );
+        const senhaCorreta = await bcrypt.compare(senha, senhaHash);
 
-        // Verifica se a senha está incorreta
         if (!senhaCorreta) {
             return res.status(401).send("E-mail ou senha incorretos.");
         }
 
-        // Gera uma nova sessão para o usuário
+        // Cria uma nova sessão
         req.session.regenerate((erro) => {
-
-            // Verifica se ocorreu algum erro ao criar a sessão
             if (erro) {
                 console.log("Erro ao criar sessão:", erro.message);
                 return res.status(500).send("Erro ao iniciar sessão.");
             }
 
-            // Armazena as informações do usuário dentro da sessão
+            // Salva os dados e o tipo da conta
             req.session.usuario = {
-                id: usuario.usuarioID,
-                email: usuario.usuarioEmail
+                id: tipo === "admin" ? conta.adminID : conta.usuarioID,
+                nome: tipo === "admin" ? conta.adminNome : conta.usuarioNome,
+                email: tipo === "admin" ? conta.adminEmail : conta.usuarioEmail,
+                tipo: tipo
             };
 
-            // Salva a sessão antes de mudar de página
             req.session.save((erro) => {
-
-                // Verifica se ocorreu algum erro ao salvar a sessão
                 if (erro) {
                     console.log("Erro ao salvar sessão:", erro.message);
                     return res.status(500).send("Erro ao salvar sessão.");
                 }
 
-                // Redireciona o usuário para a página inicial
                 res.redirect("/");
             });
         });
 
     } catch (erro) {
-
         console.log("Erro no login:", erro.message);
-        res.status(500).send("Erro ao realizar o login.");
-
+        res.status(500).send("Erro ao realizar login.");
     }
 });
+
 
 
 app.get("/entrar", (req, res) => {
@@ -226,6 +253,64 @@ app.post("/sair", (req, res) => {
         // Redireciona para a página de login
         res.redirect("/entrar");
     });
+});
+
+app.get("/cadastro-admin", (req, res) => {
+    res.render("cadastro-admin");
+});
+
+app.post("/cadastro-admin", async (req, res) => {
+    try {
+        const nome = (req.body.nome || "").trim();
+        const email = (req.body.email || "").trim().toLowerCase();
+        const senha = req.body.senha || "";
+        const codigo = req.body.codigoConvite || "";
+
+        // Verifica o código de convite
+        if (!verificarCodigoConvite(codigo)) {
+            return res.status(403).send("Código de convite inválido.");
+        }
+
+        // Verifica os campos
+        if (!nome || !email || senha.length < 8) {
+            return res.status(400).send(
+                "Preencha todos os campos. A senha deve ter pelo menos 8 caracteres."
+            );
+        }
+
+        // Verifica se o e-mail já existe em alguma das tabelas
+        const [usuarios, administradores] = await Promise.all([
+            db.query(
+                "SELECT usuarioID FROM usuarios WHERE usuarioEmail = ?",
+                [email]
+            ),
+            db.query(
+                "SELECT adminID FROM administradores WHERE adminEmail = ?",
+                [email]
+            )
+        ]);
+
+        if (usuarios.length > 0 || administradores.length > 0) {
+            return res.status(409).send("Este e-mail já está cadastrado.");
+        }
+
+        // Criptografa a senha
+        const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+        // Cadastra o administrador
+        await db.query(`
+            INSERT INTO administradores
+            (adminNome, adminEmail, adminSenha)
+            VALUES (?, ?, ?)
+        `, [nome, email, senhaCriptografada]);
+
+        // Redireciona para o login
+        res.redirect("/entrar");
+
+    } catch (erro) {
+        console.log("Erro ao cadastrar administrador:", erro.message);
+        res.status(500).send("Erro ao cadastrar administrador.");
+    }
 });
 
 

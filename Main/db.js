@@ -16,11 +16,16 @@ const sslConfig = {
 }
 
 
-const dbPassword = process.env.AIVEN_DB_PASSWORD; 
+const dbPassword = process.env.AIVEN_DB_PASSWORD;
+const dbHost = process.env.AIVEN_DB_HOST;
+const dbPort = Number(process.env.AIVEN_DB_PORT);
+
+console.log("Host carregado:", dbHost);
+console.log("Porta carregada:", dbPort);
 
 const pool = mysql.createPool({
-    host: 'mysql-projeto-escola-mysql-projeto-escola.b.aivencloud.com',
-    port: 13680,
+    host: dbHost,
+    port: dbPort,
     user: 'avnadmin',
     password: dbPassword, 
     database: 'defaultdb',

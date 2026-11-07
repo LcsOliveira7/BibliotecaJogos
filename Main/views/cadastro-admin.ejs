@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Administrativo - The Game Library</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <%- include('partials/header') %>
+
+    <h1 class="h1-explorar">Cadastro de Administrador</h1>
+
+    <div class="div-recomendar">
+
+        <form class="form-recomendar" action="/cadastro-admin" method="POST">
+            <div class="elemento-div">
+                <div class="recomendar-elemento">
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" name="nome" placeholder="Seu nome" required>
+                </div>
+            </div>
+
+            <div class="elemento-div">
+                <div class="recomendar-elemento">
+                    <label for="email">E-mail:</label>
+                    <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+                </div>
+            </div>
+
+            <div class="elemento-div">
+                <div class="recomendar-elemento">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" name="senha" minlength="8" placeholder="Mínimo de 8 caracteres" required>
+                </div>
+            </div>
+
+            <div class="elemento-div">
+                <div class="recomendar-elemento">
+                    <label for="codigoConvite">Código de convite:</label>
+                    <input type="password" id="codigoConvite" name="codigoConvite" placeholder="Digite o código secreto" required>
+                </div>
+            </div>
+
+            <div class="elemento-div">
+                <button type="submit" class="botao-header">Criar conta administrativa</button>
+            </div>
+        </form>
+    </div>
+
+    <%- include('partials/footer') %>
+
+</body>
+</html>
