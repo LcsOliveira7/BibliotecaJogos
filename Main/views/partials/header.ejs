@@ -30,4 +30,10 @@
 
     </div>
 
+    <% if (usuarioLogado && usuarioLogado.tipo === "admin") { %>
+        <a href="/admin/recomendacoes" class="botao-header">
+            Painel Admin
+        </a>
+    <% } %>
+
 </header>

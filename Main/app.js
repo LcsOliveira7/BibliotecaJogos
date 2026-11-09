@@ -9,6 +9,9 @@ const session = require("express-session");
 const crypto = require("crypto");
 const port = 3000
 
+// Armazenamento temporário de recomendações
+const recomendacoes = [];
+
 app.use(express.static('public'))
 //Permite que o Express interprete os dados enviados por formulários HTML e os disponibilize em req.body.
 app.use(express.urlencoded({ extended: true }));
@@ -56,6 +59,65 @@ function verificarCodigoConvite(codigo) {
 
     return crypto.timingSafeEqual(recebido, esperado);
 }
+
+// Verifica se o usuário está autenticado
+function exigirLogin(req, res, next) {
+    if (!req.session.usuario) {
+        return res.redirect("/entrar");
+    }
+
+    next();
+}
+
+// Verifica se o usuário é administrador
+function exigirAdmin(req, res, next) {
+    if (!req.session.usuario) {
+        return res.redirect("/entrar");
+    }
+
+    if (req.session.usuario.tipo !== "admin") {
+        return res.status(403).send("Acesso permitido apenas para administradores.");
+    }
+
+    next();
+}
+
+// Painel de recomendações (somente administradores)
+app.get("/admin/recomendacoes", exigirAdmin, (req, res) => {
+    res.render("admin-recomendacoes", {recomendacoes: recomendacoes});
+});
+
+// Aprovar uma recomendação
+app.post("/admin/recomendacoes/:id/aprovar", exigirAdmin, (req, res) => {
+
+    const id = Number(req.params.id);
+
+    const recomendacao = recomendacoes.find(item => item.id === id);
+
+    if (!recomendacao) {
+        return res.status(404).send("Recomendação não encontrada.");
+    }
+
+    recomendacao.status = "aprovada";
+
+    res.redirect("/admin/recomendacoes");
+});
+
+// Recusar uma recomendação
+app.post("/admin/recomendacoes/:id/recusar", exigirAdmin, (req, res) => {
+
+    const id = Number(req.params.id);
+
+    const recomendacao = recomendacoes.find(item => item.id === id);
+
+    if (!recomendacao) {
+        return res.status(404).send("Recomendação não encontrada.");
+    }
+
+    recomendacao.status = "recusada";
+
+    res.redirect("/admin/recomendacoes");
+});
 
 app.get("/", (req, res) => {
     res.render("index")
@@ -223,15 +285,34 @@ app.get("/entrar", (req, res) => {
     res.render("entrar")
 })
 
-app.get("/recomendar", (req, res) => {
+app.get("/recomendar", exigirLogin, (req, res) => {
     res.render("recomendar")
 })
 
-app.post("/recomendar", (req, res) => {
-    res.redirect("/recomendado")
-})
+app.post("/recomendar", exigirLogin, (req, res) => {
 
-app.get("/recomendado", (req, res) => {
+    const { nome, desc, img, link } = req.body;
+
+    if (!nome || !desc || !img || !link) {
+        return res.status(400).send("Preencha todos os campos.");
+    }
+
+    const novaRecomendacao = {
+        id: Date.now(),
+        nome: nome.trim(),
+        descricao: desc.trim(),
+        imagem: img.trim(),
+        link: link.trim(),
+        usuario: req.session.usuario.nome,
+        status: "pendente"
+    };
+
+    recomendacoes.push(novaRecomendacao);
+
+    res.redirect("/recomendado");
+});
+
+app.get("/recomendado", exigirLogin, (req, res) => {
     res.render("recomendado")
 })
 
@@ -315,7 +396,7 @@ app.post("/cadastro-admin", async (req, res) => {
 
 
 // Função responsável por testar o banco e iniciar o servidor
-async function iniciarServidor() {
+/*async function iniciarServidor() {
     try {
 
         // Executa uma consulta simples para verificar a conexão com o Aiven
@@ -336,5 +417,10 @@ async function iniciarServidor() {
     }
 }
 
-iniciarServidor();
+iniciarServidor(); */
+
+app.listen(port, () => {
+    console.log("Servidor rodando na porta", port);
+    console.log("A conexão com o banco será necessária apenas nas rotas que utilizam o MySQL.");
+});
 

@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administração - BibliotecaJogos</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <%- include('partials/header') %>
+
+    <main class="div-recomendar">
+        <div class="form-recomendar">
+
+            <h1 class="h1-explorar">Painel de Recomendações</h1>
+
+            <p class="subtitulo">
+                Analise as sugestões enviadas pelos usuários.
+            </p>
+
+            <% if (recomendacoes.length === 0) { %>
+
+                <p>Nenhuma recomendação recebida ainda.</p>
+
+            <% } else { %>
+
+                <% recomendacoes.forEach(jogo => { %>
+
+                    <div class="elemento-div">
+                        <div class="recomendar-elemento">
+
+                            <h2><%= jogo.nome %></h2>
+
+                            <img src="<%= jogo.imagem %>" alt="Capa de <%= jogo.nome %>" width="180">
+
+                            <p><%= jogo.descricao %></p>
+
+                            <p><strong>Recomendado por:</strong><%= jogo.usuario %></p>
+
+                            <p><strong>Status:</strong><%= jogo.status %></p>
+
+                            <a href="<%= jogo.link %>" target="_blank" rel="noopener noreferrer">Acessar jogo</a>
+
+                            <% if (jogo.status === "pendente") { %>
+
+                                <div class="botoes-sucesso">
+
+                                    <form action="/admin/recomendacoes/<%= jogo.id %>/aprovar" method="POST">
+                                        <button type="submit" class="botao-header">Aprovar</button>
+                                    </form>
+
+                                    <form action="/admin/recomendacoes/<%= jogo.id %>/recusar" method="POST">
+                                        <button type="submit" class="botao-header">Recusar</button>
+                                    </form>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+</body>
+</html>
