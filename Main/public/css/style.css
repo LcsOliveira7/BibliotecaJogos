@@ -393,3 +393,70 @@ footer p {
         flex-wrap: wrap;
     }
 }
+
+.botao-admin {
+    width: auto;
+    min-width: 130px;
+    padding: 0 15px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.painel-admin {
+    width: 100%;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.conteudo-admin {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.card-admin {
+    width: 100%;
+    max-width: 650px;
+    height: auto;
+    min-height: 180px;
+    padding: 20px;
+    background-color: rgb(27, 0, 53);
+    border: 1px solid rgba(100, 0, 104, 0.4);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.conteudo-card-admin {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.card-admin img {
+    max-width: 180px;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+.card-admin p {
+    line-height: 1.5;
+}
+
+.card-admin a:not(.botao-header) {
+    color: rgb(210, 100, 255);
+    text-decoration: underline;
+}
+
+.card-admin .botoes-sucesso {
+    justify-content: flex-start;
+}

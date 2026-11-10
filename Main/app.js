@@ -9,8 +9,11 @@ const session = require("express-session");
 const crypto = require("crypto");
 const port = 3000
 
-// Armazenamento temporário de recomendações
-const recomendacoes = [];
+// Armazenamento temporário de usuários
+const usuariosMemoria = [];
+
+// Armazenamento temporário de administradores
+const administradoresMemoria = [];
 
 app.use(express.static('public'))
 //Permite que o Express interprete os dados enviados por formulários HTML e os disponibilize em req.body.
@@ -153,49 +156,52 @@ app.get("/cadastrar", (req, res) => {
     res.render("cadastrar")
 })
 
+
 app.post("/cadastrar", async (req, res) => {
     try {
-
-        // Recebe as informações enviadas pelo formulário
-        const nome = (req.body.nome || "").trim(); // tira os espaços em brancos do inicio e final da mensagem
+        const nome = (req.body.nome || "").trim();
         const email = (req.body.email || "").trim().toLowerCase();
         const senha = req.body.senha || "";
 
-        // Verifica se os dados foram preenchidos corretamente
         if (!nome || !email || senha.length < 8) {
             return res.status(400).send(
                 "Preencha os campos e utilize uma senha com pelo menos 8 caracteres."
             );
         }
 
-        // Transforma a senha original em um hash
+        // Verifica se o e-mail já está cadastrado
+        const emailExiste = [...usuariosMemoria, ...administradoresMemoria]
+            .some(conta => conta.email === email);
+
+        if (emailExiste) {
+            return res.status(409).send("Este e-mail já está cadastrado.");
+        }
+
+        // Criptografa a senha
         const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-        // Cadastra as informações no banco de dados
-        await db.query(`
-            insert into usuarios
-            (usuarioNome, usuarioEmail, usuarioSenha)
-            values (?, ?, ?)
-        `, [nome, email, senhaCriptografada]);
+        // Cria o novo usuário
+        const novoUsuario = {
+            id: Date.now(),
+            nome: nome,
+            email: email,
+            senha: senhaCriptografada
+        };
 
-        // Se o cadastro funcionar, redireciona para o login
+        // Armazena na memória
+        usuariosMemoria.push(novoUsuario);
+
+        console.log("Usuário cadastrado:", novoUsuario.nome);
+
         res.redirect("/entrar");
 
     } catch (erro) {
-
-        // Verifica se o nome ou e-mail já está cadastrado
-        if (erro.code === "ER_DUP_ENTRY") {
-            return res.status(409).send(
-                "Nome de usuário ou e-mail já cadastrado."
-            );
-        }
-
-        // Mostra outros erros no terminal
         console.log("Erro ao cadastrar:", erro.message);
-
         res.status(500).send("Erro ao cadastrar usuário.");
     }
 });
+
+
 
 
 app.post("/login", async (req, res) => {
@@ -207,42 +213,23 @@ app.post("/login", async (req, res) => {
             return res.status(400).send("Preencha todos os campos.");
         }
 
-        // Consulta as duas tabelas
-        const [administradores, usuarios] = await Promise.all([
-            db.query(
-                "SELECT * FROM administradores WHERE adminEmail = ?",
-                [email]
-            ),
-            db.query(
-                "SELECT * FROM usuarios WHERE usuarioEmail = ?",
-                [email]
-            )
-        ]);
+        // Procura a conta nas duas listas
+        const admin = administradoresMemoria.find(
+            conta => conta.email === email
+        );
 
-        // Evita conflito de contas
-        if (administradores.length > 0 && usuarios.length > 0) {
-            return res.status(409).send(
-                "E-mail cadastrado em duas categorias. Verifique o banco."
-            );
-        }
+        const usuario = usuariosMemoria.find(
+            conta => conta.email === email
+        );
 
-        let conta;
-        let tipo;
+        const conta = admin || usuario;
 
-        if (administradores.length > 0) {
-            conta = administradores[0];
-            tipo = "admin";
-        } else if (usuarios.length > 0) {
-            conta = usuarios[0];
-            tipo = "usuario";
-        } else {
+        if (!conta) {
             return res.status(401).send("E-mail ou senha incorretos.");
         }
 
-        // Identifica os campos de acordo com a tabela
-        const senhaHash = tipo === "admin"? conta.adminSenha: conta.usuarioSenha;
-
-        const senhaCorreta = await bcrypt.compare(senha, senhaHash);
+        // Compara a senha digitada com o hash armazenado
+        const senhaCorreta = await bcrypt.compare(senha, conta.senha);
 
         if (!senhaCorreta) {
             return res.status(401).send("E-mail ou senha incorretos.");
@@ -251,21 +238,18 @@ app.post("/login", async (req, res) => {
         // Cria uma nova sessão
         req.session.regenerate((erro) => {
             if (erro) {
-                console.log("Erro ao criar sessão:", erro.message);
                 return res.status(500).send("Erro ao iniciar sessão.");
             }
 
-            // Salva os dados e o tipo da conta
             req.session.usuario = {
-                id: tipo === "admin" ? conta.adminID : conta.usuarioID,
-                nome: tipo === "admin" ? conta.adminNome : conta.usuarioNome,
-                email: tipo === "admin" ? conta.adminEmail : conta.usuarioEmail,
-                tipo: tipo
+                id: conta.id,
+                nome: conta.nome,
+                email: conta.email,
+                tipo: admin ? "admin" : "usuario"
             };
 
             req.session.save((erro) => {
                 if (erro) {
-                    console.log("Erro ao salvar sessão:", erro.message);
                     return res.status(500).send("Erro ao salvar sessão.");
                 }
 
@@ -278,6 +262,7 @@ app.post("/login", async (req, res) => {
         res.status(500).send("Erro ao realizar login.");
     }
 });
+
 
 
 
@@ -340,6 +325,7 @@ app.get("/cadastro-admin", (req, res) => {
     res.render("cadastro-admin");
 });
 
+
 app.post("/cadastro-admin", async (req, res) => {
     try {
         const nome = (req.body.nome || "").trim();
@@ -352,40 +338,33 @@ app.post("/cadastro-admin", async (req, res) => {
             return res.status(403).send("Código de convite inválido.");
         }
 
-        // Verifica os campos
         if (!nome || !email || senha.length < 8) {
             return res.status(400).send(
                 "Preencha todos os campos. A senha deve ter pelo menos 8 caracteres."
             );
         }
 
-        // Verifica se o e-mail já existe em alguma das tabelas
-        const [usuarios, administradores] = await Promise.all([
-            db.query(
-                "SELECT usuarioID FROM usuarios WHERE usuarioEmail = ?",
-                [email]
-            ),
-            db.query(
-                "SELECT adminID FROM administradores WHERE adminEmail = ?",
-                [email]
-            )
-        ]);
+        // Verifica se o e-mail já existe
+        const emailExiste = [...usuariosMemoria, ...administradoresMemoria]
+            .some(conta => conta.email === email);
 
-        if (usuarios.length > 0 || administradores.length > 0) {
+        if (emailExiste) {
             return res.status(409).send("Este e-mail já está cadastrado.");
         }
 
-        // Criptografa a senha
         const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-        // Cadastra o administrador
-        await db.query(`
-            INSERT INTO administradores
-            (adminNome, adminEmail, adminSenha)
-            VALUES (?, ?, ?)
-        `, [nome, email, senhaCriptografada]);
+        const novoAdmin = {
+            id: Date.now(),
+            nome: nome,
+            email: email,
+            senha: senhaCriptografada
+        };
 
-        // Redireciona para o login
+        administradoresMemoria.push(novoAdmin);
+
+        console.log("Administrador cadastrado:", novoAdmin.nome);
+
         res.redirect("/entrar");
 
     } catch (erro) {
@@ -393,6 +372,7 @@ app.post("/cadastro-admin", async (req, res) => {
         res.status(500).send("Erro ao cadastrar administrador.");
     }
 });
+
 
 
 // Função responsável por testar o banco e iniciar o servidor

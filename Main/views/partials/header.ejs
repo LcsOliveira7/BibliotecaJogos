@@ -1,4 +1,3 @@
-
 <header class="header">
 
     <nav>
@@ -15,6 +14,13 @@
                 <%= usuarioLogado.email %>
             </span>
 
+            <% if (usuarioLogado.tipo === "admin") { %>
+                <a href="/admin/recomendacoes"
+                   class="botao-header botao-admin">
+                    Painel Admin
+                </a>
+            <% } %>
+
             <form action="/sair" method="POST">
                 <button type="submit" class="botao-header">
                     Sair
@@ -29,11 +35,5 @@
         <% } %>
 
     </div>
-
-    <% if (usuarioLogado && usuarioLogado.tipo === "admin") { %>
-        <a href="/admin/recomendacoes" class="botao-header">
-            Painel Admin
-        </a>
-    <% } %>
 
 </header>
