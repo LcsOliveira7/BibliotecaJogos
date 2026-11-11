@@ -1,3 +1,4 @@
+
 <div class="header-explorar">
     <nav>
         <div class="botao-header-explorar">
@@ -6,16 +7,14 @@
                     Todas
                 </button>
             </a>
-        </div>
 
-        <% categorias.forEach(function(categoria) { %>
-            <div class="botao-header-explorar">
+            <% categorias.forEach(function(categoria) { %>
                 <a href="/explorar?categoria=<%= categoria.categoriaID %>">
                     <button class="<%= Number(categoriaSelecionada) === categoria.categoriaID ? 'ativo' : '' %>">
                         <%= categoria.categoriaNome %>
                     </button>
                 </a>
-            </div>
-        <% }); %>
+            <% }); %>
+        </div>
     </nav>
 </div>

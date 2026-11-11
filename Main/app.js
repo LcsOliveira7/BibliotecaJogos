@@ -90,36 +90,44 @@ function exigirAdmin(req, res, next) {
 app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
     try {
         const recomendacoes = await db.query(`
-            SELECT
-                r.recomendacaoID AS id,
-                r.recomendacaoTituloJogo AS nome,
-                r.recomendacaoJustificativa AS descricao,
-                r.recomendacaoImagem AS imagem,
-                r.recomendacaoLink AS link,
-                r.recomendacaoStatus AS status,
-                u.usuarioNome AS usuario,
-                GROUP_CONCAT(
-                    c.categoriaNome
-                    ORDER BY c.categoriaNome
-                    SEPARATOR ', '
-                ) AS categorias
-            FROM recomendacoes r
-            INNER JOIN usuarios u
-                ON r.usuarioID = u.usuarioID
-            LEFT JOIN categoriaRecomendacao cr
-                ON r.recomendacaoID = cr.recomendacaoID
-            LEFT JOIN categorias c
-                ON cr.categoriaID = c.categoriaID
-            GROUP BY
-                r.recomendacaoID,
-                r.recomendacaoTituloJogo,
-                r.recomendacaoJustificativa,
-                r.recomendacaoImagem,
-                r.recomendacaoLink,
-                r.recomendacaoStatus,
-                u.usuarioNome
-            ORDER BY r.recomendacaoID DESC
-        `);
+        SELECT
+            r.recomendacaoID AS id,
+            r.recomendacaoTituloJogo AS nome,
+            r.recomendacaoJustificativa AS descricao,
+            r.recomendacaoImagem AS imagem,
+            r.recomendacaoLink AS link,
+            r.recomendacaoStatus AS status,
+            u.usuarioNome AS usuario,
+            GROUP_CONCAT(
+                c.categoriaNome
+                ORDER BY c.categoriaNome
+                SEPARATOR ', '
+            ) AS categorias
+
+        FROM recomendacoes r
+
+        INNER JOIN usuarios u
+            ON r.usuarioID = u.usuarioID
+
+        LEFT JOIN categoriaRecomendacao cr
+            ON r.recomendacaoID = cr.recomendacaoID
+
+        LEFT JOIN categorias c
+            ON cr.categoriaID = c.categoriaID
+
+        WHERE r.recomendacaoStatus = 'pendente'
+
+        GROUP BY
+            r.recomendacaoID,
+            r.recomendacaoTituloJogo,
+            r.recomendacaoJustificativa,
+            r.recomendacaoImagem,
+            r.recomendacaoLink,
+            r.recomendacaoStatus,
+            u.usuarioNome
+
+        ORDER BY r.recomendacaoID DESC
+    `);
 
         res.render("admin-recomendacoes", { recomendacoes });
 
@@ -620,29 +628,32 @@ app.post("/cadastrar", async (req, res) => {
             );
         }
 
-        // Verifica se o e-mail já está cadastrado
-        const emailExiste = [...usuariosMemoria, ...administradoresMemoria]
-            .some(conta => conta.email === email);
+        // Verifica se o e-mail já existe nas duas tabelas
+        const usuarios = await db.query(
+            "SELECT usuarioID FROM usuarios WHERE usuarioEmail = ?",
+            [email]
+        );
 
-        if (emailExiste) {
+        const admins = await db.query(
+            "SELECT adminID FROM administradores WHERE adminEmail = ?",
+            [email]
+        );
+
+        if (usuarios.length > 0 || admins.length > 0) {
             return res.status(409).send("Este e-mail já está cadastrado.");
         }
 
         // Criptografa a senha
         const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-        // Cria o novo usuário
-        const novoUsuario = {
-            id: Date.now(),
-            nome: nome,
-            email: email,
-            senha: senhaCriptografada
-        };
+        // Insere o usuário no MySQL
+        await db.query(
+            `INSERT INTO usuarios (usuarioNome, usuarioEmail, usuarioSenha)
+             VALUES (?, ?, ?)`,
+            [nome, email, senhaCriptografada]
+        );
 
-        // Armazena na memória
-        usuariosMemoria.push(novoUsuario);
-
-        console.log("Usuário cadastrado:", novoUsuario.nome);
+        console.log("Usuário cadastrado:", nome);
 
         res.redirect("/entrar");
 
@@ -664,14 +675,20 @@ app.post("/login", async (req, res) => {
             return res.status(400).send("Preencha todos os campos.");
         }
 
-        // Procura a conta nas duas listas
-        const admin = administradoresMemoria.find(
-            conta => conta.email === email
+        // Procura o administrador no MySQL
+        const admins = await db.query(
+            "SELECT * FROM administradores WHERE adminEmail = ?",
+            [email]
         );
 
-        const usuario = usuariosMemoria.find(
-            conta => conta.email === email
+        // Procura o usuário no MySQL
+        const usuarios = await db.query(
+            "SELECT * FROM usuarios WHERE usuarioEmail = ?",
+            [email]
         );
+
+        const admin = admins[0];
+        const usuario = usuarios[0];
 
         const conta = admin || usuario;
 
@@ -679,8 +696,15 @@ app.post("/login", async (req, res) => {
             return res.status(401).send("E-mail ou senha incorretos.");
         }
 
+        const senhaArmazenada = admin
+            ? admin.adminSenha
+            : usuario.usuarioSenha;
+
         // Compara a senha digitada com o hash armazenado
-        const senhaCorreta = await bcrypt.compare(senha, conta.senha);
+        const senhaCorreta = await bcrypt.compare(
+            senha,
+            senhaArmazenada
+        );
 
         if (!senhaCorreta) {
             return res.status(401).send("E-mail ou senha incorretos.");
@@ -693,9 +717,9 @@ app.post("/login", async (req, res) => {
             }
 
             req.session.usuario = {
-                id: conta.id,
-                nome: conta.nome,
-                email: conta.email,
+                id: admin ? admin.adminID : usuario.usuarioID,
+                nome: admin ? admin.adminNome : usuario.usuarioNome,
+                email: email,
                 tipo: admin ? "admin" : "usuario"
             };
 
@@ -713,8 +737,6 @@ app.post("/login", async (req, res) => {
         res.status(500).send("Erro ao realizar login.");
     }
 });
-
-
 
 
 app.get("/entrar", (req, res) => {
@@ -890,25 +912,30 @@ app.post("/cadastro-admin", async (req, res) => {
         }
 
         // Verifica se o e-mail já existe
-        const emailExiste = [...usuariosMemoria, ...administradoresMemoria]
-            .some(conta => conta.email === email);
+        const usuarios = await db.query(
+            "SELECT usuarioID FROM usuarios WHERE usuarioEmail = ?",
+            [email]
+        );
 
-        if (emailExiste) {
+        const admins = await db.query(
+            "SELECT adminID FROM administradores WHERE adminEmail = ?",
+            [email]
+        );
+
+        if (usuarios.length > 0 || admins.length > 0) {
             return res.status(409).send("Este e-mail já está cadastrado.");
         }
 
         const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-        const novoAdmin = {
-            id: Date.now(),
-            nome: nome,
-            email: email,
-            senha: senhaCriptografada
-        };
+        // Insere o administrador no MySQL
+        await db.query(
+            `INSERT INTO administradores (adminNome, adminEmail, adminSenha)
+             VALUES (?, ?, ?)`,
+            [nome, email, senhaCriptografada]
+        );
 
-        administradoresMemoria.push(novoAdmin);
-
-        console.log("Administrador cadastrado:", novoAdmin.nome);
+        console.log("Administrador cadastrado:", nome);
 
         res.redirect("/entrar");
 

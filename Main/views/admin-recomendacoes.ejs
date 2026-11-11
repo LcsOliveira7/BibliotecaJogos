@@ -59,11 +59,13 @@
                                 Acessar jogo
                             </a>
 
-                            <a href="/admin/recomendacoes/<%= jogo.id %>/editar" class="botao-header">
-                                Editar recomendação
-                            </a>
+
 
                             <% if (jogo.status === "pendente") { %>
+
+                                <a href="/admin/recomendacoes/<%= jogo.id %>/editar" class="botao-header">
+                                    Editar recomendação
+                                </a>
 
                                 <div class="botoes-sucesso">
 

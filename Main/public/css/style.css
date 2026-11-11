@@ -51,7 +51,7 @@ a:hover {
 
 .header-explorar {
   background-color: rgb(51, 0, 53);
-  height: 60px;
+  height: 80px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -465,6 +465,15 @@ footer p {
     background-color: #333;
     color: white;
     border: 2px solid white;
+}
+
+.botao-header-explorar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .link-jogo {

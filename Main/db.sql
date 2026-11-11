@@ -1,4 +1,3 @@
-
 create table administradores (
 adminID int not null auto_increment primary key,
 adminNome varchar(100) not null,
