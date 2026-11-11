@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -33,33 +32,64 @@
 
                             <h2><%= jogo.nome %></h2>
 
-                            <img src="<%= jogo.imagem %>" alt="Capa de <%= jogo.nome %>" width="180">
+                            <img
+                                src="<%= jogo.imagem %>"
+                                alt="Capa de <%= jogo.nome %>"
+                                width="180"
+                            >
 
                             <p><%= jogo.descricao %></p>
 
-                            <p><strong>Recomendado por:</strong><%= jogo.usuario %></p>
+                            <p>
+                                <strong>Recomendado por:</strong>
+                                <%= jogo.usuario %>
+                            </p>
 
-                            <p><strong>Status:</strong><%= jogo.status %></p>
+                            <p>
+                                <strong>Categorias:</strong>
+                                <%= jogo.categorias || "Nenhuma categoria" %>
+                            </p>
 
-                            <a href="<%= jogo.link %>" target="_blank" rel="noopener noreferrer">Acessar jogo</a>
+                            <p>
+                                <strong>Status:</strong>
+                                <%= jogo.status %>
+                            </p>
+
+                            <a href="<%= jogo.link %>" target="_blank" rel="noopener noreferrer">
+                                Acessar jogo
+                            </a>
+
+                            <a href="/admin/recomendacoes/<%= jogo.id %>/editar" class="botao-header">
+                                Editar recomendação
+                            </a>
 
                             <% if (jogo.status === "pendente") { %>
 
                                 <div class="botoes-sucesso">
 
                                     <form action="/admin/recomendacoes/<%= jogo.id %>/aprovar" method="POST">
-                                        <button type="submit" class="botao-header">Aprovar</button>
+                                        <button type="submit" class="botao-header">
+                                            Aprovar
+                                        </button>
                                     </form>
 
                                     <form action="/admin/recomendacoes/<%= jogo.id %>/recusar" method="POST">
-                                        <button type="submit" class="botao-header">Recusar</button>
+                                        <button type="submit" class="botao-header">
+                                            Recusar
+                                        </button>
                                     </form>
+
                                 </div>
+
                             <% } %>
+
                         </div>
                     </div>
+
                 <% }) %>
+
             <% } %>
+
         </div>
     </main>
 

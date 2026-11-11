@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Recomendação - BibliotecaJogos</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <%- include('partials/header') %>
+
+    <main class="painel-admin">
+        <div class="conteudo-admin">
+
+            <h1 class="h1-explorar">Editar Recomendação</h1>
+
+            <form action="/admin/recomendacoes/<%= recomendacao.id %>/editar" method="POST">
+
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+
+                        <label for="nome">Nome do jogo:</label>
+                        <input
+                            type="text"
+                            id="nome"
+                            name="nome"
+                            value="<%= recomendacao.nome %>"
+                            required
+                        >
+
+                        <label for="desc">Descrição:</label>
+                        <textarea
+                            id="desc"
+                            name="desc"
+                            required
+                        ><%= recomendacao.descricao %></textarea>
+
+                        <label for="img">Imagem (URL):</label>
+                        <input
+                            type="url"
+                            id="img"
+                            name="img"
+                            value="<%= recomendacao.imagem %>"
+                            required
+                        >
+
+                        <label for="link">Link do jogo:</label>
+                        <input
+                            type="url"
+                            id="link"
+                            name="link"
+                            value="<%= recomendacao.link %>"
+                            required
+                        >
+
+
+                        <label for="desenvolvedora">Desenvolvedora:</label>
+                        <input
+                            type="text"
+                            id="desenvolvedora"
+                            name="desenvolvedora"
+                            maxlength="100"
+                            value="<%= recomendacao.desenvolvedora || '' %>"
+                            placeholder="Digite o nome da desenvolvedora"
+                        >
+
+                        <label for="dataLancamento">Data de lançamento:</label>
+                        <input
+                            type="date"
+                            id="dataLancamento"
+                            name="dataLancamento"
+                            value="<%= recomendacao.dataLancamento ? new Date(recomendacao.dataLancamento).toISOString().slice(0, 10) : '' %>"
+                        >
+
+
+                        <h3>Categorias:</h3>
+
+                        <% categorias.forEach(categoria => { %>
+
+                            <div>
+                                <input
+                                    type="checkbox"
+                                    name="categorias"
+                                    value="<%= categoria.categoriaID %>"
+                                    id="categoria-<%= categoria.categoriaID %>"
+                                    <%= recomendacao.categoriasIDs.includes(categoria.categoriaID) ? "checked" : "" %>
+                                >
+
+                                <label for="categoria-<%= categoria.categoriaID %>">
+                                    <%= categoria.categoriaNome %>
+                                </label>
+                            </div>
+
+                        <% }) %>
+
+                        <button type="submit" class="botao-header">
+                            Salvar alterações
+                        </button>
+
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+</body>
+</html>

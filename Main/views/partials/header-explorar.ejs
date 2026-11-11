@@ -1,20 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/public/css/style.css">
-</head>
-<body>
-    <div class="header-explorar">
-        <nav>
-            <div class="botao-header-explorar"><a href="/explorar"><button>Cat1</button></a></div>
-            <div class="botao-header-explorar"><a href="/explorar?categoria=cat2"><button>Cat2</button></a></div>
-            <div class="botao-header-explorar"><a href="/explorar?categoria=cat3"><button>Cat3</button></a></div>
-            
+<div class="header-explorar">
+    <nav>
+        <div class="botao-header-explorar">
+            <a href="/explorar">
+                <button class="<%= !categoriaSelecionada ? 'ativo' : '' %>">
+                    Todas
+                </button>
+            </a>
+        </div>
 
-        </nav>
-    </div>
-</body>
-</html>
+        <% categorias.forEach(function(categoria) { %>
+            <div class="botao-header-explorar">
+                <a href="/explorar?categoria=<%= categoria.categoriaID %>">
+                    <button class="<%= Number(categoriaSelecionada) === categoria.categoriaID ? 'ativo' : '' %>">
+                        <%= categoria.categoriaNome %>
+                    </button>
+                </a>
+            </div>
+        <% }); %>
+    </nav>
+</div>

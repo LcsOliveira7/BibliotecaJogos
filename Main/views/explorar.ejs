@@ -16,11 +16,18 @@
         <div class="jogos-body">
             <% if (typeof jogos !== 'undefined' && jogos.length > 0) { %>
                 <% jogos.forEach(function(jogo) { %>
-                    <div class="capa-jogo">
-                        <div class="capa-titulo"><%= jogo.NOME || jogo.nome %></div>
-                        <img class="capa-img" src="<%= jogo.IMAGEM || jogo.imagem %>" onerror="this.onerror=null; this.src='/images/erroImagem.png';" alt="<%= jogo.NOME || jogo.nome %>">
-                        <div class="capa-desc"><%= jogo.DESCRICAO || jogo.descricao %></div>
-                    </div>
+                    <a href="/jogo/<%= jogo.id %>" class="link-jogo">
+                        <div class="capa-jogo">
+                            <div class="capa-titulo"><%= jogo.nome %></div>
+
+                            <img class="capa-img"
+                                src="<%= jogo.imagem %>"
+                                onerror="this.onerror=null; this.src='/images/erroImagem.png';"
+                                alt="<%= jogo.nome %>">
+
+                            <div class="capa-desc"><%= jogo.descricao %></div>
+                        </div>
+                    </a>
                 <% }); %>
             <% } else { %>
                 <p class="subtitulo">Nenhum jogo encontrado no banco de dados.</p>

@@ -1,0 +1,44 @@
+
+<%- include('partials/header') %>
+<link rel="stylesheet" href="/css/style.css">
+<main class="detalhes-jogo">
+    <div class="detalhes-imagem">
+        <img
+            src="<%= jogo.imagem %>"
+            alt="<%= jogo.nome %>"
+            onerror="this.onerror=null; this.src='/images/erroImagem.png';"
+        >
+    </div>
+
+    <section class="detalhes-informacoes">
+        <h1><%= jogo.nome %></h1>
+
+        <p>
+            <strong>Desenvolvedora:</strong>
+            <%= jogo.desenvolvedora || 'Não informada' %>
+        </p>
+
+        <p>
+            <strong>Data de lançamento:</strong>
+            <%= jogo.dataLancamento
+                ? new Date(jogo.dataLancamento).toLocaleDateString('pt-BR')
+                : 'Não informada' %>
+        </p>
+
+        <p>
+            <strong>Categorias:</strong>
+            <%= jogo.categorias || 'Nenhuma categoria cadastrada' %>
+        </p>
+
+        <h2>Sobre o jogo</h2>
+        <p><%= jogo.descricao %></p>
+
+        <% if (jogo.link) { %>
+            <a href="<%= jogo.link %>" target="_blank" rel="noopener noreferrer">
+                Acessar página do jogo
+            </a>
+        <% } %>
+
+        <a href="/explorar">Voltar para explorar</a>
+    </section>
+</main>

@@ -27,7 +27,7 @@ plataformaNome varchar(100) not null unique
 create table jogos (
 jogoID int not null auto_increment primary key,
 jogoNome varchar(100) not null unique,
-jogoDescricao varchar(200) not null,
+jogoDescricao varchar(500) not null,
 jogoDesenvolvedora varchar(100) not null,
 jogoDataLancamento date not null,
 jogoImagem varchar(300) not null,
@@ -35,6 +35,9 @@ jogoLink varchar(300) not null,
 adminID int not null,
 foreign key (adminID) references administradores(adminID)
 );
+
+ALTER TABLE jogos
+MODIFY jogoDescricao VARCHAR(500) NOT NULL;
 
 create table recomendacoes (
 recomendacaoID int not null auto_increment primary key,
@@ -45,6 +48,18 @@ recomendacaoLink varchar(300) not null,
 recomendacaoStatus varchar(30) not null default 'pendente',
 usuarioID int not null,
 foreign key (usuarioID) references usuarios(usuarioID)
+);
+
+ALTER TABLE recomendacoes
+ADD COLUMN recomendacaoDesenvolvedora VARCHAR(100) NULL,
+ADD COLUMN recomendacaoDataLancamento DATE NULL;
+
+create table categoriaRecomendacao (
+    recomendacaoID int not null,
+    categoriaID int not null,
+    primary key (recomendacaoID, categoriaID),
+    foreign key (recomendacaoID) references recomendacoes(recomendacaoID),
+    foreign key (categoriaID) references categorias(categoriaID)
 );
 
 create table categoriaJogo (

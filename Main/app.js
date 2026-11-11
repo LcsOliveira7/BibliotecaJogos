@@ -86,41 +86,450 @@ function exigirAdmin(req, res, next) {
 }
 
 // Painel de recomendações (somente administradores)
-app.get("/admin/recomendacoes", exigirAdmin, (req, res) => {
-    res.render("admin-recomendacoes", {recomendacoes: recomendacoes});
+
+app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
+    try {
+        const recomendacoes = await db.query(`
+            SELECT
+                r.recomendacaoID AS id,
+                r.recomendacaoTituloJogo AS nome,
+                r.recomendacaoJustificativa AS descricao,
+                r.recomendacaoImagem AS imagem,
+                r.recomendacaoLink AS link,
+                r.recomendacaoStatus AS status,
+                u.usuarioNome AS usuario,
+                GROUP_CONCAT(
+                    c.categoriaNome
+                    ORDER BY c.categoriaNome
+                    SEPARATOR ', '
+                ) AS categorias
+            FROM recomendacoes r
+            INNER JOIN usuarios u
+                ON r.usuarioID = u.usuarioID
+            LEFT JOIN categoriaRecomendacao cr
+                ON r.recomendacaoID = cr.recomendacaoID
+            LEFT JOIN categorias c
+                ON cr.categoriaID = c.categoriaID
+            GROUP BY
+                r.recomendacaoID,
+                r.recomendacaoTituloJogo,
+                r.recomendacaoJustificativa,
+                r.recomendacaoImagem,
+                r.recomendacaoLink,
+                r.recomendacaoStatus,
+                u.usuarioNome
+            ORDER BY r.recomendacaoID DESC
+        `);
+
+        res.render("admin-recomendacoes", { recomendacoes });
+
+    } catch (erro) {
+        console.log("Erro ao buscar recomendações:", erro.message);
+        res.status(500).send("Erro ao carregar as recomendações.");
+    }
 });
+
 
 // Aprovar uma recomendação
-app.post("/admin/recomendacoes/:id/aprovar", exigirAdmin, (req, res) => {
+
+
+app.post("/admin/recomendacoes/:id/aprovar", exigirAdmin, async (req, res) => {
 
     const id = Number(req.params.id);
+    const adminID = req.session.usuario.id;
 
-    const recomendacao = recomendacoes.find(item => item.id === id);
-
-    if (!recomendacao) {
-        return res.status(404).send("Recomendação não encontrada.");
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).send("ID inválido.");
     }
 
-    recomendacao.status = "aprovada";
+    let conexao;
+    let transacaoIniciada = false;
 
-    res.redirect("/admin/recomendacoes");
+    try {
+        conexao = await db.pool.getConnection();
+
+        await conexao.beginTransaction();
+        transacaoIniciada = true;
+
+        // Busca a recomendação e bloqueia sua alteração durante a aprovação
+        const [resultado] = await conexao.execute(
+            `SELECT
+                recomendacaoTituloJogo,
+                recomendacaoJustificativa,
+                recomendacaoImagem,
+                recomendacaoLink,
+                recomendacaoDesenvolvedora,
+                recomendacaoDataLancamento,
+                recomendacaoStatus
+             FROM recomendacoes
+             WHERE recomendacaoID = ?
+             FOR UPDATE`,
+            [id]
+        );
+
+        if (resultado.length === 0) {
+            await conexao.rollback();
+            transacaoIniciada = false;
+            return res.status(404).send("Recomendação não encontrada.");
+        }
+
+        const recomendacao = resultado[0];
+
+        if (recomendacao.recomendacaoStatus !== "pendente") {
+            await conexao.rollback();
+            transacaoIniciada = false;
+            return res.status(400).send("Esta recomendação já foi analisada.");
+        }
+
+        // Verifica se o administrador preencheu os dados obrigatórios
+        if (
+            !recomendacao.recomendacaoDesenvolvedora?.trim() ||
+            !recomendacao.recomendacaoDataLancamento
+        ) {
+            await conexao.rollback();
+            transacaoIniciada = false;
+
+            return res.status(400).send(
+                "Preencha a desenvolvedora e a data de lançamento antes de aprovar."
+            );
+        }
+
+        // Busca as categorias da recomendação
+        const [categorias] = await conexao.execute(
+            `SELECT categoriaID
+             FROM categoriaRecomendacao
+             WHERE recomendacaoID = ?`,
+            [id]
+        );
+
+        if (categorias.length === 0) {
+            await conexao.rollback();
+            transacaoIniciada = false;
+            return res.status(400).send("A recomendação precisa ter pelo menos uma categoria.");
+        }
+
+        const [jogoExistente] = await conexao.execute(
+            `SELECT jogoID
+            FROM jogos
+            WHERE jogoNome = ?`,
+            [recomendacao.recomendacaoTituloJogo]
+        );
+
+        if (jogoExistente.length > 0) {
+            await conexao.rollback();
+            transacaoIniciada = false;
+
+            return res.status(400).send(
+                "Este jogo já está cadastrado na biblioteca."
+            );
+        }
+
+        // Cadastra o jogo oficialmente
+        const [novoJogo] = await conexao.execute(
+            `INSERT INTO jogos
+            (
+                jogoNome,
+                jogoDescricao,
+                jogoDesenvolvedora,
+                jogoDataLancamento,
+                jogoImagem,
+                jogoLink,
+                adminID
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+                recomendacao.recomendacaoTituloJogo,
+                recomendacao.recomendacaoJustificativa,
+                recomendacao.recomendacaoDesenvolvedora,
+                recomendacao.recomendacaoDataLancamento,
+                recomendacao.recomendacaoImagem,
+                recomendacao.recomendacaoLink,
+                adminID
+            ]
+        );
+
+        const jogoID = novoJogo.insertId;
+
+        // Copia as categorias para o jogo oficial
+        for (const categoria of categorias) {
+            await conexao.execute(
+                `INSERT INTO categoriaJogo (jogoID, categoriaID)
+                 VALUES (?, ?)`,
+                [jogoID, categoria.categoriaID]
+            );
+        }
+
+        // Atualiza o status da recomendação
+        await conexao.execute(
+            `UPDATE recomendacoes
+             SET recomendacaoStatus = 'aprovada'
+             WHERE recomendacaoID = ?`,
+            [id]
+        );
+
+        await conexao.commit();
+        transacaoIniciada = false;
+
+        res.redirect("/admin/recomendacoes");
+
+    } catch (erro) {
+
+        if (conexao && transacaoIniciada) {
+            await conexao.rollback();
+        }
+
+        console.log("Erro ao aprovar recomendação:", erro.message);
+        res.status(500).send("Erro ao cadastrar o jogo na biblioteca.");
+
+    } finally {
+        if (conexao) {
+            conexao.release();
+        }
+    }
 });
 
-// Recusar uma recomendação
-app.post("/admin/recomendacoes/:id/recusar", exigirAdmin, (req, res) => {
+
+
+
+app.get("/admin/recomendacoes/:id/editar", exigirAdmin, async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).send("ID de recomendação inválido.");
+        }
+
+        // Busca os dados da recomendação
+        const resultado = await db.query(`
+            SELECT
+                recomendacaoID AS id,
+                recomendacaoTituloJogo AS nome,
+                recomendacaoJustificativa AS descricao,
+                recomendacaoImagem AS imagem,
+                recomendacaoLink AS link,
+                recomendacaoDesenvolvedora AS desenvolvedora,
+                recomendacaoDataLancamento AS dataLancamento
+            FROM recomendacoes
+            WHERE recomendacaoID = ?
+        `, [id]);
+
+        if (resultado.length === 0) {
+            return res.status(404).send("Recomendação não encontrada.");
+        }
+
+        const recomendacao = resultado[0];
+
+        // Busca todas as categorias disponíveis
+        const categorias = await db.query(`
+            SELECT categoriaID, categoriaNome
+            FROM categorias
+            ORDER BY categoriaNome
+        `);
+
+        // Busca as categorias já associadas à recomendação
+        const categoriasSelecionadas = await db.query(`
+            SELECT categoriaID
+            FROM categoriaRecomendacao
+            WHERE recomendacaoID = ?
+        `, [id]);
+
+        recomendacao.categoriasIDs = categoriasSelecionadas.map(
+            categoria => Number(categoria.categoriaID)
+        );
+
+        res.render("editar-recomendacao", {
+            recomendacao,
+            categorias
+        });
+
+    } catch (erro) {
+        console.log("Erro ao carregar edição:", erro.message);
+        res.status(500).send("Erro ao carregar a página de edição.");
+    }
+});
+
+
+
+app.post("/admin/recomendacoes/:id/recusar", exigirAdmin, async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).send("ID inválido.");
+        }
+
+        const resultado = await db.query(
+            `UPDATE recomendacoes
+             SET recomendacaoStatus = 'recusada'
+             WHERE recomendacaoID = ?
+             AND recomendacaoStatus = 'pendente'`,
+            [id]
+        );
+
+        if (resultado.affectedRows === 0) {
+            return res.status(404).send(
+                "Recomendação não encontrada ou já analisada."
+            );
+        }
+
+        res.redirect("/admin/recomendacoes");
+
+    } catch (erro) {
+        console.log("Erro ao recusar recomendação:", erro.message);
+        res.status(500).send("Erro ao recusar recomendação.");
+    }
+});
+
+
+
+
+app.post("/admin/recomendacoes/:id/editar", exigirAdmin, async (req, res) => {
 
     const id = Number(req.params.id);
+    const {
+        nome,
+        desc,
+        img,
+        link,
+        desenvolvedora,
+        dataLancamento
+    } = req.body;
 
-    const recomendacao = recomendacoes.find(item => item.id === id);
+    // Recebe e organiza as categorias selecionadas
+    const categoriasRecebidas = req.body.categorias;
 
-    if (!recomendacao) {
-        return res.status(404).send("Recomendação não encontrada.");
+    const categorias = [
+        ...new Set(
+            (Array.isArray(categoriasRecebidas)
+                ? categoriasRecebidas
+                : categoriasRecebidas ? [categoriasRecebidas] : []
+            ).map(Number)
+        )
+    ];
+
+    // Valida os dados recebidos
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).send("ID inválido.");
     }
 
-    recomendacao.status = "recusada";
+    if (!nome?.trim() || !desc?.trim() || !img?.trim() || !link?.trim()) {
+        return res.status(400).send("Preencha todos os campos.");
+    }
 
-    res.redirect("/admin/recomendacoes");
+    if (
+        categorias.length === 0 ||
+        categorias.some(categoriaID =>
+            !Number.isInteger(categoriaID) || categoriaID <= 0
+        )
+    ) {
+        return res.status(400).send("Selecione pelo menos uma categoria válida.");
+    }
+
+    let conexao;
+    let transacaoIniciada = false;
+
+    try {
+        conexao = await db.pool.getConnection();
+
+        // Verifica se a recomendação existe
+        const [recomendacoesEncontradas] = await conexao.execute(
+            "SELECT recomendacaoID FROM recomendacoes WHERE recomendacaoID = ?",
+            [id]
+        );
+
+        if (recomendacoesEncontradas.length === 0) {
+            return res.status(404).send("Recomendação não encontrada.");
+        }
+
+        const [statusRecomendacao] = await conexao.execute(
+            `SELECT recomendacaoStatus 
+            FROM recomendacoes
+            WHERE recomendacaoID = ?`,
+            [id]
+        );
+
+        if (statusRecomendacao[0].recomendacaoStatus !== "pendente") {
+            return res.status(400).send(
+                "Não é possível editar uma recomendação já analisada."
+            );
+        }
+
+        // Verifica se todas as categorias existem
+        const placeholders = categorias.map(() => "?").join(", ");
+
+        const [categoriasValidas] = await conexao.execute(
+            `SELECT categoriaID FROM categorias
+             WHERE categoriaID IN (${placeholders})`,
+            categorias
+        );
+
+        if (categoriasValidas.length !== categorias.length) {
+            return res.status(400).send("Uma ou mais categorias são inválidas.");
+        }
+
+        await conexao.beginTransaction();
+        transacaoIniciada = true;
+
+        // Atualiza os dados da recomendação
+
+        await conexao.execute(
+            `UPDATE recomendacoes
+            SET recomendacaoTituloJogo = ?,
+                recomendacaoJustificativa = ?,
+                recomendacaoImagem = ?,
+                recomendacaoLink = ?,
+                recomendacaoDesenvolvedora = ?,
+                recomendacaoDataLancamento = ?
+            WHERE recomendacaoID = ?`,
+            [
+                nome.trim(),
+                desc.trim(),
+                img.trim(),
+                link.trim(),
+                desenvolvedora?.trim() || null,
+                dataLancamento || null,
+                id
+            ]
+        );
+
+        // Remove as categorias antigas
+        await conexao.execute(
+            "DELETE FROM categoriaRecomendacao WHERE recomendacaoID = ?",
+            [id]
+        );
+
+        // Insere as novas categorias
+        for (const categoriaID of categorias) {
+            await conexao.execute(
+                `INSERT INTO categoriaRecomendacao
+                 (recomendacaoID, categoriaID)
+                 VALUES (?, ?)`,
+                [id, categoriaID]
+            );
+        }
+
+        await conexao.commit();
+        transacaoIniciada = false;
+
+        res.redirect("/admin/recomendacoes");
+
+    } catch (erro) {
+
+        if (conexao && transacaoIniciada) {
+            await conexao.rollback();
+        }
+
+        console.log("Erro ao editar recomendação:", erro.message);
+        res.status(500).send("Erro ao salvar as alterações.");
+
+    } finally {
+        if (conexao) {
+            conexao.release();
+        }
+    }
 });
+
+
 
 app.get("/", (req, res) => {
     res.render("index")
@@ -129,25 +538,67 @@ app.get("/", (req, res) => {
 
 app.get("/explorar", async (req, res) => {
     try {
-        // Executa uma consulta SQL no Aiven e aguarda o resultado
-        // O AS permite dar nomes alternativos às colunas retornadas
-        const jogos = await db.query(`
-            select
-                jogoNome as nome,
-                jogoDescricao as descricao,
-                jogoImagem as imagem
-            from jogos
+        const categoriaID = req.query.categoria;
+        
+        if (categoriaID !== undefined) {
+            const id = Number(categoriaID);
+
+            if (!Number.isInteger(id) || id <= 0) {
+                return res.status(400).send("Categoria inválida.");
+            }
+
+            const categoriaExiste = await db.query(`
+                SELECT categoriaID
+                FROM categorias
+                WHERE categoriaID = ?
+            `, [id]);
+
+            if (categoriaExiste.length === 0) {
+                return res.status(404).send("Categoria não encontrada.");
+            }
+        }
+
+        let sql = `
+            SELECT DISTINCT
+                j.jogoID AS id,
+                j.jogoNome AS nome,
+                j.jogoDescricao AS descricao,
+                j.jogoImagem AS imagem
+            FROM jogos j
+        `;
+
+        const valores = [];
+
+        // Se uma categoria foi selecionada, filtra os jogos
+        if (categoriaID) {
+            sql += `
+                INNER JOIN categoriaJogo cj
+                    ON j.jogoID = cj.jogoID
+                WHERE cj.categoriaID = ?
+            `;
+
+            valores.push(categoriaID);
+        }
+
+        sql += ` ORDER BY j.jogoNome ASC`;
+
+        const jogos = await db.query(sql, valores);
+
+        const categorias = await db.query(`
+            SELECT categoriaID, categoriaNome
+            FROM categorias
+            ORDER BY categoriaNome ASC
         `);
-        // Mostra no terminal os jogos encontrados no banco
-        console.log("Jogos encontrados:", jogos);
-        // Abre a página explorar.ejs e envia os jogos para ela
-        res.render("explorar", { jogos: jogos });
+
+        res.render("explorar", {
+            jogos,
+            categorias,
+            categoriaSelecionada: categoriaID
+        });
 
     } catch (erro) {
-        // Se ocorrer um erro, mostra a mensagem no terminal
-        console.log("Erro ao buscar jogos:", erro.message);
-        // Envia ao navegador o status 500 (erro interno do servidor)
-        res.status(500).send("Erro ao carregar os jogos.");
+        console.log("Erro ao carregar exploração:", erro.message);
+        res.status(500).send("Erro ao carregar a página de exploração.");
     }
 });
 
@@ -270,32 +721,126 @@ app.get("/entrar", (req, res) => {
     res.render("entrar")
 })
 
-app.get("/recomendar", exigirLogin, (req, res) => {
-    res.render("recomendar")
-})
+app.get("/recomendar", exigirLogin, async (req, res) => {
+    try {
+        const categorias = await db.query(`
+            SELECT categoriaID, categoriaNome
+            FROM categorias
+            ORDER BY categoriaNome
+        `);
 
-app.post("/recomendar", exigirLogin, (req, res) => {
+        res.render("recomendar", { categorias });
+
+    } catch (erro) {
+        console.log("Erro ao buscar categorias:", erro.message);
+        res.status(500).send("Erro ao carregar as categorias.");
+    }
+});
+
+
+app.post("/recomendar", exigirLogin, async (req, res) => {
 
     const { nome, desc, img, link } = req.body;
 
-    if (!nome || !desc || !img || !link) {
+    // Recebe as categorias selecionadas
+    const categoriasRecebidas = req.body.categorias;
+
+    const categorias = [
+        ...new Set(
+            (Array.isArray(categoriasRecebidas)
+                ? categoriasRecebidas
+                : categoriasRecebidas ? [categoriasRecebidas] : []
+            ).map(Number)
+        )
+    ];
+
+    if (
+        !nome?.trim() ||
+        !desc?.trim() ||
+        !img?.trim() ||
+        !link?.trim()
+    ) {
         return res.status(400).send("Preencha todos os campos.");
     }
 
-    const novaRecomendacao = {
-        id: Date.now(),
-        nome: nome.trim(),
-        descricao: desc.trim(),
-        imagem: img.trim(),
-        link: link.trim(),
-        usuario: req.session.usuario.nome,
-        status: "pendente"
-    };
+    if (categorias.length === 0 ||
+        categorias.some(id => !Number.isInteger(id) || id <= 0)) {
+        return res.status(400).send("Selecione pelo menos uma categoria válida.");
+    }
 
-    recomendacoes.push(novaRecomendacao);
+    let conexao;
 
-    res.redirect("/recomendado");
+    let transacaoIniciada = false;
+
+    try {
+        conexao = await db.pool.getConnection();
+
+        // Verifica se as categorias realmente existem
+        const placeholders = categorias.map(() => "?").join(", ");
+
+        const [categoriasValidas] = await conexao.execute(
+            `SELECT categoriaID FROM categorias
+             WHERE categoriaID IN (${placeholders})`,
+            categorias
+        );
+
+        if (categoriasValidas.length !== categorias.length) {
+            return res.status(400).send("Uma ou mais categorias são inválidas.");
+        }
+
+        await conexao.beginTransaction();
+
+        transacaoIniciada = true;
+
+        // Cadastra a recomendação
+        const [resultado] = await conexao.execute(
+            `INSERT INTO recomendacoes
+            (recomendacaoTituloJogo, recomendacaoJustificativa,
+             recomendacaoImagem, recomendacaoLink, usuarioID)
+            VALUES (?, ?, ?, ?, ?)`,
+            [
+                nome.trim(),
+                desc.trim(),
+                img.trim(),
+                link.trim(),
+                req.session.usuario.id
+            ]
+        );
+
+        const recomendacaoID = resultado.insertId;
+
+        // Relaciona a recomendação com cada categoria
+        for (const categoriaID of categorias) {
+            await conexao.execute(
+                `INSERT INTO categoriaRecomendacao
+                (recomendacaoID, categoriaID)
+                VALUES (?, ?)`,
+                [recomendacaoID, categoriaID]
+            );
+        }
+
+        await conexao.commit();
+
+        transacaoIniciada = false;
+
+        res.redirect("/recomendado");
+
+    } catch (erro) {
+
+    if (conexao && transacaoIniciada) {
+        await conexao.rollback();
+    }
+
+        console.log("Erro ao salvar recomendação:", erro.message);
+        res.status(500).send("Erro ao enviar recomendação.");
+
+    } finally {
+        if (conexao) {
+            conexao.release();
+        }
+    }
 });
+
 
 app.get("/recomendado", exigirLogin, (req, res) => {
     res.render("recomendado")
@@ -375,29 +920,57 @@ app.post("/cadastro-admin", async (req, res) => {
 
 
 
-// Função responsável por testar o banco e iniciar o servidor
-/*async function iniciarServidor() {
+app.get("/jogo/:id", async (req, res) => {
     try {
+        const id = Number(req.params.id);
 
-        // Executa uma consulta simples para verificar a conexão com o Aiven
-        // O SELECT 1 retorna o número 1 e não precisa de nenhuma tabela
-        const resultado = await db.query("SELECT 1 AS teste");
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).send("ID de jogo inválido.");
+        }
 
-        // Se a consulta funcionar, mostra a confirmação no terminal
-        console.log("Aiven conectado com sucesso!");
-        console.log("Resultado do teste:", resultado[0].teste);
-        // Inicia o servidor Express na porta definida
-        app.listen(port, () => {
-            console.log("Servidor rodando na porta", port);
+        const resultado = await db.query(`
+            SELECT
+                j.jogoID AS id,
+                j.jogoNome AS nome,
+                j.jogoDescricao AS descricao,
+                j.jogoDesenvolvedora AS desenvolvedora,
+                j.jogoDataLancamento AS dataLancamento,
+                j.jogoImagem AS imagem,
+                j.jogoLink AS link,
+                GROUP_CONCAT(
+                    c.categoriaNome
+                    ORDER BY c.categoriaNome
+                    SEPARATOR ', '
+                ) AS categorias
+            FROM jogos j
+            LEFT JOIN categoriaJogo cj
+                ON j.jogoID = cj.jogoID
+            LEFT JOIN categorias c
+                ON cj.categoriaID = c.categoriaID
+            WHERE j.jogoID = ?
+            GROUP BY
+                j.jogoID,
+                j.jogoNome,
+                j.jogoDescricao,
+                j.jogoDesenvolvedora,
+                j.jogoDataLancamento,
+                j.jogoImagem,
+                j.jogoLink
+        `, [id]);
+
+        if (resultado.length === 0) {
+            return res.status(404).send("Jogo não encontrado.");
+        }
+
+        res.render("detalhes-jogo", {
+            jogo: resultado[0]
         });
 
     } catch (erro) {
-        // Se a consulta falhar, mostra o erro no terminal
-        console.error("Erro ao conectar ao Aiven:", erro.message);
+        console.log("Erro ao carregar detalhes do jogo:", erro.message);
+        res.status(500).send("Erro ao carregar os detalhes do jogo.");
     }
-}
-
-iniciarServidor(); */
+});
 
 app.listen(port, () => {
     console.log("Servidor rodando na porta", port);

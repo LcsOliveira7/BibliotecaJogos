@@ -46,6 +46,33 @@
             </div>
 
             <div class="elemento-div">
+                <div class="recomendar-elemento">
+                    <label>Categorias:</label>
+
+                    <% if (categorias.length === 0) { %>
+                        <p>Nenhuma categoria disponível.</p>
+                    <% } else { %>
+
+                        <% categorias.forEach(categoria => { %>
+                            <div>
+                                <input
+                                    type="checkbox"
+                                    name="categorias"
+                                    value="<%= categoria.categoriaID %>"
+                                    id="categoria-<%= categoria.categoriaID %>"
+                                >
+
+                                <label for="categoria-<%= categoria.categoriaID %>">
+                                    <%= categoria.categoriaNome %>
+                                </label>
+                            </div>
+                        <% }) %>
+
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="elemento-div">
                 <button type="submit" class="botao-header">Enviar</button>
             </div>
 
