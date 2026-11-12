@@ -9,12 +9,6 @@ const session = require("express-session");
 const crypto = require("crypto");
 const port = 3000
 
-// Armazenamento temporário de usuários
-const usuariosMemoria = [];
-
-// Armazenamento temporário de administradores
-const administradoresMemoria = [];
-
 app.use(express.static('public'))
 //Permite que o Express interprete os dados enviados por formulários HTML e os disponibilize em req.body.
 app.use(express.urlencoded({ extended: true }));
