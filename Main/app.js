@@ -65,6 +65,22 @@ function exigirLogin(req, res, next) {
     next();
 }
 
+// Permite acesso apenas a usuários comuns
+function exigirUsuario(req, res, next) {
+
+    if (!req.session.usuario) {
+        return res.redirect("/entrar");
+    }
+
+    if (req.session.usuario.tipo !== "usuario") {
+        return res.status(403).send(
+            "Apenas usuários comuns podem recomendar jogos."
+        );
+    }
+
+    next();
+}
+
 // Verifica se o usuário é administrador
 function exigirAdmin(req, res, next) {
     if (!req.session.usuario) {
@@ -91,6 +107,10 @@ app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
             r.recomendacaoJustificativa AS descricao,
             r.recomendacaoImagem AS imagem,
             r.recomendacaoLink AS link,
+            MAX(r.recomendacaoDesenvolvedora) AS desenvolvedora,
+            DATE_FORMAT(
+            MAX(r.recomendacaoDataLancamento),
+            '%d/%m/%Y') AS lancamento,
             r.recomendacaoStatus AS status,
             u.usuarioNome AS usuario,
             GROUP_CONCAT(
@@ -131,8 +151,16 @@ app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
     ORDER BY jogoNome ASC
 `);
 
-        // Envia as recomendações e os jogos para o EJS
-        res.render("admin-recomendacoes", { recomendacoes, jogos });
+        // Define qual seção do painel será exibida
+        const aba = req.query.aba === "jogos"
+            ? "jogos"
+            : "recomendacoes";
+
+        res.render("admin-recomendacoes", {
+            recomendacoes,
+            jogos,
+            aba
+        });
 
     } catch (erro) {
         console.log("Erro ao buscar recomendações:", erro.message);
@@ -182,7 +210,7 @@ app.post("/admin/jogos/:id/excluir", exigirAdmin, async (req, res) => {
         // Confirma as exclusões
         await conexao.commit();
 
-        res.redirect("/admin/recomendacoes");
+        res.redirect(303, "/admin/recomendacoes?aba=jogos");
 
     } catch (erro) {
 
@@ -204,6 +232,206 @@ app.post("/admin/jogos/:id/excluir", exigirAdmin, async (req, res) => {
         if (conexao) conexao.release();
     }
 });
+
+
+app.get("/admin/jogos/:id/editar", exigirAdmin, async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (!Number.isInteger(id) || id <= 0) {
+            return res.status(400).send("ID inválido.");
+        }
+
+        // Busca os dados do jogo
+        const jogos = await db.query(`
+            SELECT
+                jogoID AS id,
+                jogoNome AS nome,
+                jogoDescricao AS descricao,
+                jogoDesenvolvedora AS desenvolvedora,
+                DATE_FORMAT(jogoDataLancamento, '%Y-%m-%d') AS dataLancamento,
+                jogoImagem AS imagem,
+                jogoLink AS link
+            FROM jogos
+            WHERE jogoID = ?
+        `, [id]);
+
+        if (jogos.length === 0) {
+            return res.status(404).send("Jogo não encontrado.");
+        }
+
+        // Busca todas as categorias disponíveis
+        const categorias = await db.query(`
+            SELECT categoriaID, categoriaNome
+            FROM categorias
+            ORDER BY categoriaNome
+        `);
+
+        // Busca as categorias que o jogo já possui
+        const selecionadas = await db.query(`
+            SELECT categoriaID
+            FROM categoriaJogo
+            WHERE jogoID = ?
+        `, [id]);
+
+        const categoriasSelecionadas = selecionadas.map(
+            categoria => Number(categoria.categoriaID)
+        );
+
+        res.render("editar-jogo", {
+            jogo: jogos[0],
+            categorias,
+            categoriasSelecionadas
+        });
+
+    } catch (erro) {
+        console.log("Erro ao abrir edição:", erro.message);
+        res.status(500).send("Erro ao carregar o jogo.");
+    }
+});
+
+
+app.post("/admin/jogos/:id/editar", exigirAdmin, async (req, res) => {
+
+    const id = Number(req.params.id);
+
+    const {
+        nome, desc, desenvolvedora,
+        dataLancamento, img, link
+    } = req.body;
+
+    // Organiza as categorias recebidas
+    const recebidas = req.body.categorias;
+
+    const categorias = [
+        ...new Set(
+            (Array.isArray(recebidas)
+                ? recebidas
+                : recebidas ? [recebidas] : []
+            ).map(Number)
+        )
+    ];
+
+    // Valida o formulário
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).send("ID inválido.");
+    }
+
+    if (
+        !nome?.trim() || !desc?.trim() ||
+        !desenvolvedora?.trim() || !img?.trim() ||
+        !link?.trim() ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(dataLancamento || "")
+    ) {
+        return res.status(400).send("Preencha todos os campos.");
+    }
+
+    if (
+        nome.length > 100 || desc.length > 500 ||
+        desenvolvedora.length > 100 ||
+        img.length > 300 || link.length > 300
+    ) {
+        return res.status(400).send("Um dos campos é muito longo.");
+    }
+
+    if (
+        categorias.length === 0 ||
+        categorias.some(id => !Number.isInteger(id) || id <= 0)
+    ) {
+        return res.status(400).send("Selecione categorias válidas.");
+    }
+
+    let conexao;
+
+    try {
+        conexao = await db.pool.getConnection();
+        await conexao.beginTransaction();
+
+        const [jogos] = await conexao.execute(
+            "SELECT jogoID FROM jogos WHERE jogoID = ? FOR UPDATE",
+            [id]
+        );
+
+        if (jogos.length === 0) {
+            await conexao.rollback();
+            return res.status(404).send("Jogo não encontrado.");
+        }
+
+        // Confere se as categorias existem
+        const placeholders = categorias.map(() => "?").join(",");
+
+        const [validas] = await conexao.execute(
+            `SELECT categoriaID FROM categorias
+             WHERE categoriaID IN (${placeholders})`,
+            categorias
+        );
+
+        if (validas.length !== categorias.length) {
+            await conexao.rollback();
+            return res.status(400).send("Categoria inexistente.");
+        }
+
+        // Atualiza as informações principais
+        await conexao.execute(`
+            UPDATE jogos
+            SET jogoNome = ?,
+                jogoDescricao = ?,
+                jogoDesenvolvedora = ?,
+                jogoDataLancamento = ?,
+                jogoImagem = ?,
+                jogoLink = ?
+            WHERE jogoID = ?
+        `, [
+            nome.trim(), desc.trim(),
+            desenvolvedora.trim(), dataLancamento,
+            img.trim(), link.trim(), id
+        ]);
+
+        // Remove os relacionamentos antigos
+        await conexao.execute(
+            "DELETE FROM categoriaJogo WHERE jogoID = ?",
+            [id]
+        );
+
+        // Insere os relacionamentos escolhidos
+        for (const categoriaID of categorias) {
+            await conexao.execute(
+                `INSERT INTO categoriaJogo (jogoID, categoriaID)
+                 VALUES (?, ?)`,
+                [id, categoriaID]
+            );
+        }
+
+        // Confirma todas as alterações
+        await conexao.commit();
+
+        res.redirect(303, "/admin/recomendacoes?aba=jogos");
+
+    } catch (erro) {
+
+        if (conexao) {
+            try {
+                await conexao.rollback();
+            } catch (erroRollback) {
+                console.log("Erro no rollback:", erroRollback.message);
+            }
+        }
+
+        console.log("Erro ao editar jogo:", erro.message);
+
+        if (erro.code === "ER_DUP_ENTRY") {
+            return res.status(409).send(
+                "Já existe um jogo com esse nome."
+            );
+        }
+
+        res.status(500).send("Erro ao editar jogo.");
+
+    } finally {
+        if (conexao) conexao.release();
+    }
+});
+
 
 // Aprovar uma recomendação
 
@@ -498,6 +726,14 @@ app.post("/admin/recomendacoes/:id/editar", exigirAdmin, async (req, res) => {
     ) {
         return res.status(400).send("Selecione pelo menos uma categoria válida.");
     }
+    if (
+        !desenvolvedora?.trim() ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(dataLancamento || "")
+    ) {
+        return res.status(400).send(
+            "Informe a desenvolvedora e a data de lançamento."
+        );
+    }
 
     let conexao;
     let transacaoIniciada = false;
@@ -694,6 +930,11 @@ app.post("/cadastrar", async (req, res) => {
             );
         }
 
+        if (erro.code === "ER_DUP_ENTRY") {
+            return res.status(409).send(
+                "Nome ou e-mail já cadastrado."
+            );
+        }
         // Verifica se o e-mail já existe nas duas tabelas
         const usuarios = await db.query(
             "SELECT usuarioID FROM usuarios WHERE usuarioEmail = ?",
@@ -817,7 +1058,10 @@ app.get("/recomendar", exigirLogin, async (req, res) => {
             ORDER BY categoriaNome
         `);
 
-        res.render("recomendar", { categorias });
+        res.render("recomendar", {
+            categorias,
+            adminVisualizando: req.session.usuario.tipo === "admin"
+        });
 
     } catch (erro) {
         console.log("Erro ao buscar categorias:", erro.message);
@@ -828,7 +1072,18 @@ app.get("/recomendar", exigirLogin, async (req, res) => {
 
 app.post("/recomendar", exigirLogin, async (req, res) => {
 
-    const { nome, desc, img, link } = req.body;
+    // Impede que administradores enviem recomendações
+    if (req.session.usuario.tipo === "admin") {
+        return res.redirect(303, "/recomendar");
+    }
+    const {
+        nome,
+        desc,
+        img,
+        link,
+        desenvolvedora,
+        dataLancamento
+    } = req.body;
 
     // Recebe as categorias selecionadas
     const categoriasRecebidas = req.body.categorias;
@@ -846,9 +1101,13 @@ app.post("/recomendar", exigirLogin, async (req, res) => {
         !nome?.trim() ||
         !desc?.trim() ||
         !img?.trim() ||
-        !link?.trim()
+        !link?.trim() ||
+        !desenvolvedora?.trim() ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(dataLancamento || "")
     ) {
-        return res.status(400).send("Preencha todos os campos.");
+        return res.status(400).send(
+            "Preencha todos os campos corretamente."
+        );
     }
 
     if (categorias.length === 0 ||
@@ -880,20 +1139,30 @@ app.post("/recomendar", exigirLogin, async (req, res) => {
 
         transacaoIniciada = true;
 
-        // Cadastra a recomendação
+
         const [resultado] = await conexao.execute(
             `INSERT INTO recomendacoes
-            (recomendacaoTituloJogo, recomendacaoJustificativa,
-             recomendacaoImagem, recomendacaoLink, usuarioID)
-            VALUES (?, ?, ?, ?, ?)`,
+    (
+        recomendacaoTituloJogo,
+        recomendacaoJustificativa,
+        recomendacaoImagem,
+        recomendacaoLink,
+        recomendacaoDesenvolvedora,
+        recomendacaoDataLancamento,
+        usuarioID
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
                 nome.trim(),
                 desc.trim(),
                 img.trim(),
                 link.trim(),
+                desenvolvedora.trim(),
+                dataLancamento,
                 req.session.usuario.id
             ]
         );
+
 
         const recomendacaoID = resultado.insertId;
 
@@ -965,7 +1234,11 @@ app.post("/cadastro-admin", async (req, res) => {
         const email = (req.body.email || "").trim().toLowerCase();
         const senha = req.body.senha || "";
         const codigo = req.body.codigoConvite || "";
-
+        if (erro.code === "ER_DUP_ENTRY") {
+            return res.status(409).send(
+                "Nome ou e-mail já cadastrado."
+            );
+        }
         // Verifica o código de convite
         if (!verificarCodigoConvite(codigo)) {
             return res.status(403).send("Código de convite inválido.");

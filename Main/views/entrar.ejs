@@ -1,52 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entrar - The Game Library</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <%- include('partials/header') %>
 
-    <h1 class="h1-explorar">Entrar na Conta</h1>
+        <h1 class="h1-explorar">Entrar na Conta</h1>
 
-    <div class="div-recomendar">
-        <form class="form-recomendar" action="/login" method="POST">
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <label for="email">E-mail:</label>
-                    <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+        <div class="div-recomendar">
+            <form class="form-recomendar" action="/login" method="POST">
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <label for="email">E-mail:</label>
+                        <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <label for="senha">Senha:</label>
-                    <input type="password" id="senha" name="senha" placeholder="Sua senha" required>
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <label for="senha">Senha:</label>
+                        <input type="password" id="senha" name="senha" placeholder="Sua senha" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <button type="submit" class="botao-header">Entrar</button>
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <button type="submit" class="botao-header">Entrar</button>
+                    </div>
                 </div>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
 
 
-<div style="text-align: center; margin-bottom: 25px;">
+        <div style="text-align: center; margin-bottom: 25px;">
 
-    <p>Ainda não tem conta?<a href="/cadastrar" style="color: rgb(180, 100, 200);">Cadastre-se</a></p>
-    <br>
-    <p style="margin-top: 20px;">É administrador?</p>
-    <br>    
-    <a style="font-size: 15px; width: 120px;" href="/cadastro-admin" class="botao-header">Cadastrar Administrador</a>
+            <p>Ainda não tem conta?<a href="/cadastrar" style="color: rgb(180, 100, 200);">Cadastre-se</a></p>
+            <br>
+            <p style="margin-top: 20px;">É administrador?</p>
+            <br>
+            <a style="font-size: 15px; width: 120px;" href="/cadastro-admin" class="botao-header">Cadastrar
+                Administrador</a>
 
-</div>
+        </div>
 
 
-    <%- include('partials/footer') %>
+        <%- include('partials/footer') %>
 </body>
+
 </html>

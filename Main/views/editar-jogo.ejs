@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Jogo - The Game Library</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+    <%- include('partials/header') %>
+
+        <main class="painel-admin">
+            <div class="conteudo-admin">
+
+                <h1 class="h1-explorar">Editar Jogo</h1>
+
+                <a href="/admin/recomendacoes" class="botao-header voltar-painel">
+                    ← Voltar ao painel
+                </a>
+
+                <form class="form-editar-recomendacao" action="/admin/jogos/<%= jogo.id %>/editar" method="POST">
+
+                    <div>
+                        <div>
+                            <label for="nome">Nome:</label>
+                            <input id="nome" name="nome" type="text" maxlength="100" value="<%= jogo.nome %>" required>
+
+                            <label for="desc">Descrição:</label>
+                            <textarea id="desc" name="desc" maxlength="500" required><%= jogo.descricao %></textarea>
+
+                            <label for="desenvolvedora">Desenvolvedora:</label>
+                            <input id="desenvolvedora" name="desenvolvedora" maxlength="100" type="text"
+                                value="<%= jogo.desenvolvedora %>" required>
+
+                            <label for="dataLancamento">Lançamento:</label>
+                            <input id="dataLancamento" name="dataLancamento" type="date"
+                                value="<%= jogo.dataLancamento %>" required>
+
+                            <label for="img">Imagem:</label>
+                            <input id="img" name="img" type="text" maxlength="300" value="<%= jogo.imagem %>" required>
+
+                            <label for="link">Link:</label>
+                            <input id="link" name="link" type="url" maxlength="300" value="<%= jogo.link %>" required>
+
+                            <h3>Categorias:</h3>
+
+                            <div class="lista-categorias-editar">
+
+                                <% categorias.forEach(categoria=> { %>
+
+                                    <div>
+                                        <input type="checkbox" name="categorias" value="<%= categoria.categoriaID %>"
+                                            id="categoria-jogo-<%= categoria.categoriaID %>"
+                                            <%=categoriasSelecionadas.includes(Number(categoria.categoriaID))
+                                            ? "checked" : "" %>
+                                        >
+
+                                        <label for="categoria-jogo-<%= categoria.categoriaID %>">
+                                            <%= categoria.categoriaNome %>
+                                        </label>
+                                    </div>
+
+                                    <% }) %>
+
+                            </div>
+
+                            <button class="botao-header" type="submit">
+                                Salvar alterações
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </main>
+
+        <%- include('partials/footer') %>
+
+</body>
+
+</html>

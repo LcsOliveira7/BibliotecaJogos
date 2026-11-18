@@ -1,40 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Explorar - The Game Library</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <%- include('partials/header') %>
-    <%- include('partials/header-explorar') %>
+        <%- include('partials/header-explorar') %>
 
-    <main>
-        <h1 class="h1-explorar">Encontre seus jogos favoritos aqui!</h1>
-        
-        <div class="jogos-body">
-            <% if (typeof jogos !== 'undefined' && jogos.length > 0) { %>
-                <% jogos.forEach(function(jogo) { %>
-                    <a href="/jogo/<%= jogo.id %>" class="link-jogo">
-                        <div class="capa-jogo">
-                            <div class="capa-titulo"><%= jogo.nome %></div>
+            <main>
+                <h1 class="h1-explorar">Encontre seus jogos favoritos aqui!</h1>
 
-                            <img class="capa-img"
-                                src="<%= jogo.imagem %>"
-                                onerror="this.onerror=null; this.src='/images/erroImagem.png';"
-                                alt="<%= jogo.nome %>">
+                <div class="jogos-body">
+                    <% if (typeof jogos !=='undefined' && jogos.length> 0) { %>
+                        <% jogos.forEach(function(jogo) { %>
+                            <a href="/jogo/<%= jogo.id %>" class="link-jogo">
+                                <div class="capa-jogo">
+                                    <div class="capa-titulo">
+                                        <%= jogo.nome %>
+                                    </div>
 
-                            <div class="capa-desc"><%= jogo.descricao %></div>
-                        </div>
-                    </a>
-                <% }); %>
-            <% } else { %>
-                <p class="subtitulo">Nenhum jogo encontrado com essa categoria.</p>
-            <% } %>
-        </div>
-    </main>
+                                    <img class="capa-img" src="<%= jogo.imagem %>"
+                                        onerror="this.onerror=null; this.src='/images/erroImagem.png';"
+                                        alt="<%= jogo.nome %>">
 
-    <%- include('partials/footer') %>
+                                    <div class="capa-desc">
+                                        <%= jogo.descricao %>
+                                    </div>
+                                </div>
+                            </a>
+                            <% }); %>
+                                <% } else { %>
+                                    <p class="subtitulo">Nenhum jogo encontrado com essa categoria.</p>
+                                    <% } %>
+                </div>
+            </main>
+
+            <%- include('partials/footer') %>
 </body>
+
 </html>

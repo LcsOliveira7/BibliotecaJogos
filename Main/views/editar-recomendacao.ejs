@@ -41,12 +41,12 @@
 
 
                             <label for="desenvolvedora">Desenvolvedora:</label>
-                            <input type="text" id="desenvolvedora" name="desenvolvedora" maxlength="100"
+                            <input required type="text" id="desenvolvedora" name="desenvolvedora" maxlength="100"
                                 value="<%= recomendacao.desenvolvedora || '' %>"
                                 placeholder="Digite o nome da desenvolvedora">
 
                             <label for="dataLancamento">Data de lançamento:</label>
-                            <input type="date" id="dataLancamento" name="dataLancamento"
+                            <input required type="date" id="dataLancamento" name="dataLancamento"
                                 value="<%= recomendacao.dataLancamento ? new Date(recomendacao.dataLancamento).toISOString().slice(0, 10) : '' %>">
 
 

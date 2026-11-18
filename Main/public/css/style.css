@@ -929,3 +929,88 @@ footer p {
 .botao-excluir-jogo:hover {
     background-color: rgb(170, 45, 70);
 }
+
+.recomendar-elemento input[type="date"] {
+    color-scheme: dark;
+}
+
+/* Aviso para administradores na página Recomendar */
+
+.aviso-admin-recomendar {
+    width: 100%;
+    background-color: rgb(54, 22, 63);
+    border: 1px solid rgb(156, 94, 177);
+    border-radius: 10px;
+    padding: 15px;
+    color: white;
+    line-height: 1.5;
+}
+
+.aviso-admin-recomendar p {
+    margin-top: 7px;
+    font-size: 14px;
+    color: rgb(225, 210, 235);
+}
+
+.form-recomendar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Navegação do painel administrativo */
+
+.abas-admin {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 15px 0 25px;
+}
+
+.aba-admin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 24px;
+    min-width: 180px;
+    border-radius: 12px;
+    background-color: rgb(51, 17, 65);
+    border: 1px solid rgb(100, 45, 115);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.aba-admin:hover {
+    background-color: rgb(110, 25, 120);
+}
+
+.aba-admin.selecionada {
+    background-color: rgb(135, 37, 143);
+    border-color: rgb(190, 105, 205);
+}
+
+@media (max-width: 500px) {
+    .aba-admin {
+        width: 100%;
+    }
+}
+.acoes-jogo-admin {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.botao-editar-jogo {
+    width: auto;
+    padding: 0 16px;
+    text-decoration: none;
+}
+
+.linha-jogo-admin {
+    flex-wrap: wrap;
+}

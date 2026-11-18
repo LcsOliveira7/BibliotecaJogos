@@ -1,51 +1,54 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar - The Game Library</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <%- include('partials/header') %>
 
-    <h1 class="h1-explorar">Criar Conta</h1>
+        <h1 class="h1-explorar">Criar Conta</h1>
 
-    <div class="div-recomendar">
-        <form class="form-recomendar" action="/cadastrar" method="POST">
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <label for="nome">Nome:</label>
-                    <input type="text" id="nome" name="nome" placeholder="Seu nome de usuário" required>
+        <div class="div-recomendar">
+            <form class="form-recomendar" action="/cadastrar" method="POST">
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <label for="nome">Nome:</label>
+                        <input type="text" id="nome" name="nome" placeholder="Seu nome de usuário" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <label for="email">E-mail:</label>
-                    <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <label for="email">E-mail:</label>
+                        <input type="email" id="email" name="email" placeholder="Seu e-mail" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <label for="senha">Senha:</label>
-                    <input type="password" id="senha" name="senha" placeholder="Sua senha" required>
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <label for="senha">Senha:</label>
+                        <input type="password" id="senha" name="senha" placeholder="Sua senha" required>
+                    </div>
                 </div>
-            </div>
 
-            <div class="elemento-div">
-                <div class="recomendar-elemento">
-                    <button type="submit" class="botao-header">Cadastrar</button>
+                <div class="elemento-div">
+                    <div class="recomendar-elemento">
+                        <button type="submit" class="botao-header">Cadastrar</button>
+                    </div>
                 </div>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
 
-    <p style="text-align: center; margin-bottom: 20px;">
-        Já possui uma conta? <a href="/entrar" style="color: rgb(180, 100, 200);">Entrar</a>
-    </p>
+        <p style="text-align: center; margin-bottom: 20px;">
+            Já possui uma conta? <a href="/entrar" style="color: rgb(180, 100, 200);">Entrar</a>
+        </p>
 
-    <%- include('partials/footer') %>
+        <%- include('partials/footer') %>
 </body>
+
 </html>

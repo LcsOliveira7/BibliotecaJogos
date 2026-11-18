@@ -14,25 +14,24 @@
                 <%= usuarioLogado.email %>
             </span>
 
-            <% if (usuarioLogado.tipo === "admin") { %>
-                <a href="/admin/recomendacoes"
-                   class="botao-header botao-admin">
+            <% if (usuarioLogado.tipo==="admin" ) { %>
+                <a href="/admin/recomendacoes" class="botao-header botao-admin">
                     Painel Admin
                 </a>
-            <% } %>
+                <% } %>
 
-            <form action="/sair" method="POST">
-                <button type="submit" class="botao-header">
-                    Sair
-                </button>
-            </form>
+                    <form action="/sair" method="POST">
+                        <button type="submit" class="botao-header">
+                            Sair
+                        </button>
+                    </form>
 
-        <% } else { %>
+                    <% } else { %>
 
-            <a href="/cadastrar" class="botao-header">Cadastrar</a>
-            <a href="/entrar" class="botao-header">Entrar</a>
+                        <a href="/cadastrar" class="botao-header">Cadastrar</a>
+                        <a href="/entrar" class="botao-header">Entrar</a>
 
-        <% } %>
+                        <% } %>
 
     </div>
 
