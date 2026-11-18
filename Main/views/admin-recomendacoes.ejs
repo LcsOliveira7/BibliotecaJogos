@@ -1,101 +1,114 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administração - BibliotecaJogos</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
 
     <%- include('partials/header') %>
 
-    <main class="painel-admin">
-        <div class="conteudo-admin">
+        <main class="painel-admin">
+            <div class="conteudo-admin">
+                <h1 class="h1-explorar">Painel de Recomendações</h1>
+                <p class="subtitulo">Analise as sugestões enviadas pelos usuários.</p>
 
-            <h1 class="h1-explorar">Painel de Recomendações</h1>
-
-            <p class="subtitulo">
-                Analise as sugestões enviadas pelos usuários.
-            </p>
-
-            <% if (recomendacoes.length === 0) { %>
-
-                <p>Nenhuma recomendação recebida ainda.</p>
-
-            <% } else { %>
-
-                <% recomendacoes.forEach(jogo => { %>
-
-                    <div class="elemento-div">
-                        <div class="recomendar-elemento">
-
-                            <h2><%= jogo.nome %></h2>
-
-                            <img
-                                src="<%= jogo.imagem %>"
-                                alt="Capa de <%= jogo.nome %>"
-                                width="180"
-                            >
-
-                            <p><%= jogo.descricao %></p>
-
-                            <p>
-                                <strong>Recomendado por:</strong>
-                                <%= jogo.usuario %>
-                            </p>
-
-                            <p>
-                                <strong>Categorias:</strong>
-                                <%= jogo.categorias || "Nenhuma categoria" %>
-                            </p>
-
-                            <p>
-                                <strong>Status:</strong>
-                                <%= jogo.status %>
-                            </p>
-
-                            <a href="<%= jogo.link %>" target="_blank" rel="noopener noreferrer">
-                                Acessar jogo
-                            </a>
-
-
-
-                            <% if (jogo.status === "pendente") { %>
-
-                                <a href="/admin/recomendacoes/<%= jogo.id %>/editar" class="botao-header">
-                                    Editar recomendação
-                                </a>
-
-                                <div class="botoes-sucesso">
-
-                                    <form action="/admin/recomendacoes/<%= jogo.id %>/aprovar" method="POST">
-                                        <button type="submit" class="botao-header">
-                                            Aprovar
-                                        </button>
-                                    </form>
-
-                                    <form action="/admin/recomendacoes/<%= jogo.id %>/recusar" method="POST">
-                                        <button type="submit" class="botao-header">
-                                            Recusar
-                                        </button>
-                                    </form>
-
+                <% if (recomendacoes.length===0) { %>
+                    <p>Nenhuma recomendação recebida ainda.</p>
+                    <% } else { %>
+                        <% recomendacoes.forEach(jogo=> { %>
+                            <article class="card-admin">
+                                <div class="cabecalho-recomendacao">
+                                    <h2>
+                                        <%= jogo.nome %>
+                                    </h2>
+                                    <span class="status-recomendacao">
+                                        <%= jogo.status %>
+                                    </span>
                                 </div>
 
-                            <% } %>
+                                <div class="corpo-recomendacao">
+                                    <img class="imagem-recomendacao" src="<%= jogo.imagem %>"
+                                        alt="Capa de <%= jogo.nome %>"
+                                        onerror="this.onerror=null;this.src='/images/erroImagem.png';">
 
-                        </div>
-                    </div>
+                                    <div class="dados-recomendacao">
+                                        <p>
+                                            <%= jogo.descricao %>
+                                        </p>
+                                        <p><strong>Recomendado por:</strong>
+                                            <%= jogo.usuario %>
+                                        </p>
+                                        <p><strong>Categorias:</strong>
+                                            <%= jogo.categorias || 'Nenhuma categoria' %>
+                                        </p>
+                                        <a class="link-recomendacao" href="<%= jogo.link %>" target="_blank"
+                                            rel="noopener noreferrer">
+                                            Acessar jogo
+                                        </a>
+                                    </div>
+                                </div>
 
-                <% }) %>
+                                <% if (jogo.status==="pendente" ) { %>
+                                    <div class="acoes-recomendacao">
+                                        <a href="/admin/recomendacoes/<%= jogo.id %>/editar"
+                                            class="botao-header">Editar</a>
 
-            <% } %>
+                                        <form action="/admin/recomendacoes/<%= jogo.id %>/aprovar" method="POST">
+                                            <button type="submit" class="botao-header">Aprovar</button>
+                                        </form>
 
-        </div>
-    </main>
+                                        <form action="/admin/recomendacoes/<%= jogo.id %>/recusar" method="POST">
+                                            <button type="submit" class="botao-header botao-recusar">Recusar</button>
+                                        </form>
+                                    </div>
+                                    <% } %>
+                            </article>
+                            <% }); %>
+                                <% } %>
 
-    <%- include('partials/footer') %>
+                                    <section class="gerenciar-jogos">
 
+                                        <h2>Jogos publicados</h2>
+
+                                        <% if (jogos.length===0) { %>
+
+                                            <p>Nenhum jogo publicado ainda.</p>
+
+                                            <% } else { %>
+
+                                                <% jogos.forEach(jogo=> { %>
+
+                                                    <div class="linha-jogo-admin">
+
+                                                        <span>
+                                                            <%= jogo.jogoNome %>
+                                                        </span>
+
+                                                        <form action="/admin/jogos/<%= jogo.jogoID %>/excluir"
+                                                            method="POST"
+                                                            onsubmit="return confirm('Deseja excluir este jogo permanentemente?')">
+                                                            <button type="submit" class="botao-excluir-jogo">
+                                                                Excluir
+                                                            </button>
+                                                        </form>
+
+                                                    </div>
+
+                                                    <% }) %>
+
+                                                        <% } %>
+
+                                    </section>
+
+            </div>
+        </main>
+
+        <%- include('partials/footer') %>
 </body>
+
 </html>

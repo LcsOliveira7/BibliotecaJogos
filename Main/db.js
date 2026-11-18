@@ -1,8 +1,17 @@
 
 const mysql = require('mysql2/promise');
 require('dotenv').config();
+const fs = require("fs");
+const path = require("path");
 
 const pool = mysql.createPool({
+    ssl: {
+        ca: fs.readFileSync(
+            path.join(__dirname, "ca.pem"),
+            "utf8"
+        ),
+        rejectUnauthorized: true
+    },
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT || 3306),
     user: process.env.DB_USER,

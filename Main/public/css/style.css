@@ -538,3 +538,394 @@ footer p {
         max-width: 100%;
     }
 }
+
+/* ========================================================================
+   AJUSTES FINAIS - CAMPOS DE LOGIN E PAINEL ADMINISTRATIVO
+   ======================================================================== */
+
+/* Evita que o preenchimento automático do Chrome pinte o campo de branco. */
+.recomendar-elemento input:-webkit-autofill,
+.recomendar-elemento input:-webkit-autofill:hover,
+.recomendar-elemento input:-webkit-autofill:focus,
+.recomendar-elemento input:-webkit-autofill:active {
+    -webkit-text-fill-color: rgb(224, 224, 224) !important;
+    -webkit-box-shadow: 0 0 0 1000px rgb(51, 17, 65) inset !important;
+    box-shadow: 0 0 0 1000px rgb(51, 17, 65) inset !important;
+    caret-color: rgb(224, 224, 224);
+}
+
+/* Uniformiza campos que não estão usando a aparência padrão. */
+.recomendar-elemento input {
+    color: rgb(224, 224, 224);
+    background-color: transparent;
+}
+
+/* Cards de recomendações: não devem herdar as dimensões dos inputs. */
+.painel-admin .conteudo-admin {
+    max-width: 960px;
+    align-items: stretch;
+}
+
+.painel-admin .conteudo-admin > h1,
+.painel-admin .conteudo-admin > .subtitulo {
+    text-align: center;
+}
+
+.painel-admin .card-admin {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    padding: 26px;
+    border: 1px solid rgba(180, 85, 205, 0.38);
+    border-radius: 16px;
+    background: rgb(27, 0, 53);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    gap: 20px;
+}
+
+.cabecalho-recomendacao {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cabecalho-recomendacao h2 {
+    font-size: 1.25rem;
+    overflow-wrap: anywhere;
+}
+
+.status-recomendacao {
+    padding: 7px 12px;
+    background: rgba(160, 90, 205, 0.2);
+    color: rgb(234, 198, 250);
+    border: 1px solid rgba(190, 125, 225, 0.45);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.corpo-recomendacao {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.imagem-recomendacao {
+    width: 160px;
+    height: 205px;
+    object-fit: cover;
+    border-radius: 12px;
+    background-color: rgb(15, 0, 30);
+}
+
+.dados-recomendacao {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+}
+
+.dados-recomendacao p {
+    margin: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+
+.link-recomendacao {
+    color: rgb(213, 152, 241);
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+}
+
+.acoes-recomendacao {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(180, 85, 205, 0.24);
+}
+
+.acoes-recomendacao .botao-header {
+    width: auto;
+    min-width: 115px;
+    height: 42px;
+    padding: 0 16px;
+    font-size: 0.88rem;
+    white-space: nowrap;
+}
+
+.acoes-recomendacao .botao-recusar {
+    background-color: rgb(105, 38, 67);
+}
+
+.acoes-recomendacao .botao-recusar:hover {
+    background-color: rgb(139, 48, 82);
+}
+
+@media (max-width: 640px) {
+    .painel-admin .card-admin { padding: 18px; }
+    .corpo-recomendacao { grid-template-columns: 1fr; gap: 16px; }
+    .imagem-recomendacao { width: 100%; max-width: 240px; height: 200px; }
+    .acoes-recomendacao .botao-header { min-width: 0; }
+}
+
+
+/* ==========================================
+   1. EDITAR RECOMENDAÇÃO
+   ========================================== */
+
+.form-editar-recomendacao {
+    width: 100%;
+    max-width: 720px;
+    background-color: rgb(27, 0, 53);
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid rgb(80, 30, 100);
+}
+
+.form-editar-recomendacao > div > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-editar-recomendacao label {
+    font-weight: 600;
+    font-size: 15px;
+    margin-top: 10px;
+}
+
+.form-editar-recomendacao input:not([type="checkbox"]),
+.form-editar-recomendacao textarea {
+    width: 100%;
+    padding: 12px;
+    background-color: rgb(51, 17, 65);
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 15px;
+    font-family: inherit;
+}
+
+.form-editar-recomendacao textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.form-editar-recomendacao input:focus,
+.form-editar-recomendacao textarea:focus {
+    outline: none;
+    border-color: rgb(170, 70, 185);
+}
+
+.form-editar-recomendacao h3 {
+    margin-top: 15px;
+}
+
+.lista-categorias-editar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.lista-categorias-editar > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: rgb(51, 17, 65);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.lista-categorias-editar label {
+    margin: 0;
+    font-weight: 400;
+    white-space: normal;
+}
+
+.lista-categorias-editar input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    accent-color: rgb(160, 50, 175);
+}
+
+.form-editar-recomendacao button {
+    margin-top: 15px;
+    width: auto;
+    min-width: 170px;
+    padding: 0 18px;
+    align-self: flex-start;
+}
+
+
+/* ==========================================
+   2. CATEGORIAS DA TELA RECOMENDAR
+   ========================================== */
+
+.categorias-recomendar {
+    height: auto;
+    padding: 15px;
+}
+
+.categorias-recomendar .recomendar-elemento {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.categorias-recomendar .recomendar-elemento > label {
+    width: 100%;
+}
+
+.categorias-recomendar .recomendar-elemento > div {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 10px;
+    background-color: rgb(36, 8, 51);
+    border-radius: 8px;
+    max-width: 100%;
+}
+
+.categorias-recomendar input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 16px;
+    accent-color: rgb(160, 50, 175);
+}
+
+.categorias-recomendar .recomendar-elemento > div label {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: normal;
+}
+
+
+/* ==========================================
+   3. BOTÕES DE CATEGORIA DO EXPLORAR
+   ========================================== */
+
+.header-explorar {
+    height: auto;
+    min-height: 75px;
+    padding: 15px 40px;
+}
+
+.header-explorar nav {
+    width: 100%;
+}
+
+.header-explorar .botao-header-explorar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0;
+    max-width: none;
+}
+
+.botao-header-explorar button {
+    background-color: rgb(100, 0, 104);
+    color: rgb(240, 240, 240);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.botao-header-explorar button:hover {
+    background-color: rgb(130, 0, 135);
+}
+
+.botao-header-explorar button.ativo {
+    background-color: rgb(150, 40, 160);
+    color: white;
+    border: 1px solid rgb(215, 140, 225);
+}
+
+
+/* ==========================================
+   4. AJUSTES PARA TELAS MENORES
+   ========================================== */
+
+@media (max-width: 650px) {
+    .form-editar-recomendacao {
+        padding: 18px;
+    }
+
+    .header-explorar {
+        padding: 15px;
+    }
+
+    .lista-categorias-editar {
+        grid-template-columns: 1fr;
+    }
+}
+.voltar-painel {
+    width: auto;
+    padding: 0 20px;
+    text-decoration: none;
+    align-self: flex-start;
+}
+/* Gerenciamento de jogos publicados */
+
+.gerenciar-jogos {
+    width: 100%;
+    max-width: 650px;
+    background-color: rgb(27, 0, 53);
+    border-radius: 15px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.gerenciar-jogos h2 {
+    color: white;
+    margin-bottom: 10px;
+}
+
+.linha-jogo-admin {
+    background-color: rgb(51, 17, 65);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.linha-jogo-admin span {
+    color: white;
+    overflow-wrap: anywhere;
+}
+
+.botao-excluir-jogo {
+    background-color: rgb(130, 35, 60);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.botao-excluir-jogo:hover {
+    background-color: rgb(170, 45, 70);
+}

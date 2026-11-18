@@ -7,8 +7,7 @@ const bcrypt = require("bcrypt");
 require("dotenv").config();
 const session = require("express-session");
 const crypto = require("crypto");
-const port = 3000
-
+const port = process.env.PORT || 3000;
 app.use(express.static('public'))
 //Permite que o Express interprete os dados enviados por formulários HTML e os disponibilize em req.body.
 app.use(express.urlencoded({ extended: true }));
@@ -83,6 +82,8 @@ function exigirAdmin(req, res, next) {
 
 app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
     try {
+        // Impede o navegador de reutilizar uma versão antiga do painel
+        res.set("Cache-Control", "no-store");
         const recomendacoes = await db.query(`
         SELECT
             r.recomendacaoID AS id,
@@ -123,7 +124,15 @@ app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
         ORDER BY r.recomendacaoID DESC
     `);
 
-        res.render("admin-recomendacoes", { recomendacoes });
+        // Busca os jogos que já estão publicados no catálogo
+        const jogos = await db.query(`
+    SELECT jogoID, jogoNome
+    FROM jogos
+    ORDER BY jogoNome ASC
+`);
+
+        // Envia as recomendações e os jogos para o EJS
+        res.render("admin-recomendacoes", { recomendacoes, jogos });
 
     } catch (erro) {
         console.log("Erro ao buscar recomendações:", erro.message);
@@ -131,6 +140,70 @@ app.get("/admin/recomendacoes", exigirAdmin, async (req, res) => {
     }
 });
 
+app.post("/admin/jogos/:id/excluir", exigirAdmin, async (req, res) => {
+
+    // Recebe o ID do jogo que será excluído
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).send("ID inválido.");
+    }
+
+    let conexao;
+
+    try {
+        conexao = await db.pool.getConnection();
+
+        // Inicia uma transação no banco
+        await conexao.beginTransaction();
+
+        // Remove os relacionamentos do jogo
+        await conexao.execute(
+            "DELETE FROM categoriaJogo WHERE jogoID = ?",
+            [id]
+        );
+
+        await conexao.execute(
+            "DELETE FROM plataformaJogo WHERE jogoID = ?",
+            [id]
+        );
+
+        // Exclui o jogo da tabela principal
+        const [resultado] = await conexao.execute(
+            "DELETE FROM jogos WHERE jogoID = ?",
+            [id]
+        );
+
+        if (resultado.affectedRows === 0) {
+            await conexao.rollback();
+            return res.status(404).send("Jogo não encontrado.");
+        }
+
+        // Confirma as exclusões
+        await conexao.commit();
+
+        res.redirect("/admin/recomendacoes");
+
+    } catch (erro) {
+
+        // Desfaz as alterações caso aconteça algum erro
+        if (conexao) {
+            try {
+                await conexao.rollback();
+            } catch (erroRollback) {
+                console.error("Erro no rollback:", erroRollback.message);
+            }
+        }
+
+        console.log("Erro ao excluir jogo:", erro.message);
+        res.status(500).send("Erro ao excluir o jogo.");
+
+    } finally {
+
+        // Libera a conexão com o MySQL
+        if (conexao) conexao.release();
+    }
+});
 
 // Aprovar uma recomendação
 
@@ -291,8 +364,6 @@ app.post("/admin/recomendacoes/:id/aprovar", exigirAdmin, async (req, res) => {
 });
 
 
-
-
 app.get("/admin/recomendacoes/:id/editar", exigirAdmin, async (req, res) => {
     try {
         const id = Number(req.params.id);
@@ -374,7 +445,8 @@ app.post("/admin/recomendacoes/:id/recusar", exigirAdmin, async (req, res) => {
             );
         }
 
-        res.redirect("/admin/recomendacoes");
+        // Após aprovar, solicita novamente a página do painel
+        res.redirect(303, "/admin/recomendacoes");
 
     } catch (erro) {
         console.log("Erro ao recusar recomendação:", erro.message);
@@ -541,7 +613,7 @@ app.get("/", (req, res) => {
 app.get("/explorar", async (req, res) => {
     try {
         const categoriaID = req.query.categoria;
-        
+
         if (categoriaID !== undefined) {
             const id = Number(categoriaID);
 
@@ -843,9 +915,9 @@ app.post("/recomendar", exigirLogin, async (req, res) => {
 
     } catch (erro) {
 
-    if (conexao && transacaoIniciada) {
-        await conexao.rollback();
-    }
+        if (conexao && transacaoIniciada) {
+            await conexao.rollback();
+        }
 
         console.log("Erro ao salvar recomendação:", erro.message);
         res.status(500).send("Erro ao enviar recomendação.");
