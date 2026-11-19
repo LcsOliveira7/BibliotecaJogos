@@ -930,11 +930,6 @@ app.post("/cadastrar", async (req, res) => {
             );
         }
 
-        if (erro.code === "ER_DUP_ENTRY") {
-            return res.status(409).send(
-                "Nome ou e-mail já cadastrado."
-            );
-        }
         // Verifica se o e-mail já existe nas duas tabelas
         const usuarios = await db.query(
             "SELECT usuarioID FROM usuarios WHERE usuarioEmail = ?",
@@ -965,6 +960,10 @@ app.post("/cadastrar", async (req, res) => {
         res.redirect("/entrar");
 
     } catch (erro) {
+        if (erro.code === "ER_DUP_ENTRY") {
+            return res.status(409).send("Nome ou e-mail já cadastrado.");
+        }
+
         console.log("Erro ao cadastrar:", erro.message);
         res.status(500).send("Erro ao cadastrar usuário.");
     }
@@ -1234,11 +1233,7 @@ app.post("/cadastro-admin", async (req, res) => {
         const email = (req.body.email || "").trim().toLowerCase();
         const senha = req.body.senha || "";
         const codigo = req.body.codigoConvite || "";
-        if (erro.code === "ER_DUP_ENTRY") {
-            return res.status(409).send(
-                "Nome ou e-mail já cadastrado."
-            );
-        }
+
         // Verifica o código de convite
         if (!verificarCodigoConvite(codigo)) {
             return res.status(403).send("Código de convite inválido.");
@@ -1279,6 +1274,10 @@ app.post("/cadastro-admin", async (req, res) => {
         res.redirect("/entrar");
 
     } catch (erro) {
+        if (erro.code === "ER_DUP_ENTRY") {
+            return res.status(409).send("Nome ou e-mail já cadastrado.");
+        }
+
         console.log("Erro ao cadastrar administrador:", erro.message);
         res.status(500).send("Erro ao cadastrar administrador.");
     }

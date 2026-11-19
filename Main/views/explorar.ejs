@@ -14,11 +14,14 @@
 
             <main>
                 <h1 class="h1-explorar">Encontre seus jogos favoritos aqui!</h1>
-
+                <div class="area-busca-jogos">
+                    <input type="search" id="busca-jogos" placeholder="Pesquisar jogo pelo nome..."
+                        aria-label="Pesquisar jogo pelo nome">
+                </div>
                 <div class="jogos-body">
                     <% if (typeof jogos !=='undefined' && jogos.length> 0) { %>
                         <% jogos.forEach(function(jogo) { %>
-                            <a href="/jogo/<%= jogo.id %>" class="link-jogo">
+                            <a href="/jogo/<%= jogo.id %>" class="link-jogo" data-nome="<%= jogo.nome %>">
                                 <div class="capa-jogo">
                                     <div class="capa-titulo">
                                         <%= jogo.nome %>
@@ -41,6 +44,21 @@
             </main>
 
             <%- include('partials/footer') %>
+
+                <script>
+                    const busca = document.getElementById("busca-jogos");
+                    const jogos = document.querySelectorAll(".link-jogo");
+
+                    busca.addEventListener("input", function () {
+                        const texto = busca.value.trim().toLocaleLowerCase("pt-BR");
+
+                        jogos.forEach(jogo => {
+                            const nome = jogo.dataset.nome.toLocaleLowerCase("pt-BR");
+
+                            jogo.style.display = nome.includes(texto) ? "" : "none";
+                        });
+                    });
+                </script>
 </body>
 
 </html>

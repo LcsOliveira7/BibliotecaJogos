@@ -1014,3 +1014,30 @@ footer p {
 .linha-jogo-admin {
     flex-wrap: wrap;
 }
+.area-busca-jogos {
+    display: flex;
+    justify-content: center;
+    margin: 20px auto 30px;
+    padding: 0 20px;
+}
+
+#busca-jogos {
+    width: 100%;
+    max-width: 550px;
+    padding: 15px 20px;
+    border-radius: 12px;
+    border: 1px solid rgb(120, 45, 135);
+    background-color: rgb(51, 17, 65);
+    color: white;
+    font-size: 16px;
+    font-family: inherit;
+}
+
+#busca-jogos::placeholder {
+    color: rgb(195, 175, 205);
+}
+
+#busca-jogos:focus {
+    outline: none;
+    border-color: rgb(185, 90, 200);
+}
